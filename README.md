@@ -8,12 +8,12 @@ The idea for this course is to give an introduction to R. No prior coding experi
 
 ### Week 1 - Introduction to R
 
-[Intro slides](/slides/Intro.Rmd)
+[Intro slides](/Slides/Intro.Rmd)
 
 
 ### Week 2 - Visualisation (ggplot2)
 
-[Visualisation slides](/slides/Visualisation.Rmd)
+[Visualisation slides](/Slides/Visualisation.Rmd)
 
 
 ### Week 3 - Data Manipulation (dplyr)
