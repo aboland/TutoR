@@ -2,6 +2,8 @@
 
 Contains all of the resources for [Clavis Insight's](https://www.clavisinsight.com/) lunch and learn R program.
 
+<br>
+
 The material will cover the set of packages in R known as the [*tidyverse*](https://www.tidyverse.org/) and will follow many of the examples from the [R for Data Science](http://r4ds.had.co.nz/index.html) book.
 
 The idea for this course is to give an introduction to R. No prior coding experience is assumed. Following the material will hopefully enable anyone to leverage R to manipulate data, create visualisations and create reproducible reports.
@@ -10,14 +12,13 @@ The idea for this course is to give an introduction to R. No prior coding experi
 
 [Intro slides](/Slides/Intro.Rmd)
 
-#### Code
-[intro.R](https://github.com/aboland/learnR/blob/master/Rcode/intro.R)  
-
-<a href="https://raw.githubusercontent.com/aboland/learnR/master/Rcode/intro_tidyverse.R" download> intro_tidyverse.R </a>  
+- [intro.R](https://github.com/aboland/learnR/blob/master/Rcode/intro.R)
+- <a href="https://raw.githubusercontent.com/aboland/learnR/master/Rcode/intro_tidyverse.R" download> intro_tidyverse.R </a>  
 
 ### Week 2 - Visualisation (ggplot2)
 
 [Visualisation slides](/Slides/Visualisation.Rmd)
 
+- [visualisation.R](https://raw.githubusercontent.com/aboland/learnR/blob/master/Rcode/visualisation.R)
 
 ### Week 3 - Data Manipulation (dplyr)
