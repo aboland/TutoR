@@ -10,6 +10,10 @@ The idea for this course is to give an introduction to R. No prior coding experi
 
 [Intro slides](/Slides/Intro.Rmd)
 
+#### Code
+[intro.R](https://github.com/aboland/learnR/blob/master/Rcode/intro.R)  
+
+<a href="https://github.com/aboland/learnR/blob/master/Rcode/intro.R" download> intro.R </a>  
 
 ### Week 2 - Visualisation (ggplot2)
 
