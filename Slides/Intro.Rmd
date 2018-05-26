@@ -5,9 +5,7 @@ date: "25/5/2018"
 output:
   ioslides_presentation:
     css: mystyle.css
-    fig_height: 2
-    fig_width: 3
-    logo: clavislogo.png
+    logo: images/clavislogo.png
     smaller: true
     widescreen: yes
 ---
@@ -41,7 +39,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## R Script
 
-- Download the R script [intro.R](/Rcode/intro_tidyverse.R)
+- Download the R script [intro.R](https://github.com/aboland/learnR/blob/master/Rcode/intro.R)
 - Double click on the file and it should open in RStudio, continue there!
 
 
@@ -57,6 +55,6 @@ knitr::opts_chunk$set(echo = FALSE)
 
 <br>
 
-- Download the tidyverse intro R script [intro_tidyverse.R](/Rcode/intro_tidyverse.R)
+- Download the tidyverse intro R script [intro_tidyverse.R](https://raw.githubusercontent.com/aboland/learnR/master/Rcode/intro_tidyverse.R)
 
 
