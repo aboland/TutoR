@@ -43,5 +43,34 @@ seq(1, 10)
 one_to_ten <- seq(1, 10)
 length(one_to_ten)
 
+# There are help files for all functions. The help files will explain
+# what the function shoudl do and what arguments should/can be given.
+# Help files can be accesed using ?
+?mean
+
+# The helpfile explains the mean function and the available arguments
+# There is an optional argument na.rm, this removes NA values. A NA value
+# is a blank entry
+my_set2 <- c(3, 4, 5, NA)
+my_set2
+
+# What happens when we try to calculate the mean of a set of variables which
+# contain an NA entry?
+mean(my_set2)
+# The additional arguments can fix this
+mean(my_set2, na.rm = TRUE)
 
 
+# - Further examples
+
+# Variables can be different types such as strings
+character_vector <- c("Hello", "World")
+
+# Certain functions will only work with particular types of variables
+mean(character_vector)
+tolower(character_vector)
+
+# Check the helpfiles to understand what these functions are doing
+paste(character_vector, collapse = " ")
+gsub("o", "", character_vector)
+sort(my_set, decreasing = TRUE)

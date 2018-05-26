@@ -16,4 +16,5 @@ summary(population)
 
 # For more complex lines of code when you are applying
 # many functions together, the pipe syntax makes it much
-# easier to read the code
+# easier to read the code.
+# We will cover this in better detail in further material
