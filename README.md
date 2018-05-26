@@ -13,7 +13,7 @@ The idea for this course is to give an introduction to R. No prior coding experi
 #### Code
 [intro.R](https://github.com/aboland/learnR/blob/master/Rcode/intro.R)  
 
-<a href="https://github.com/aboland/learnR/blob/master/Rcode/intro.R" download> intro.R </a>  
+<a href="https://raw.githubusercontent.com/aboland/learnR/master/Rcode/intro_tidyverse.R" download> intro_tidyverse.R </a>  
 
 ### Week 2 - Visualisation (ggplot2)
 
