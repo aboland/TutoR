@@ -37,12 +37,13 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## RStudio Layout
 
-<center><img src="images/rstudio_layout.png" width=75%></center>
-<!-- ![](images/rstudio_layout.png){width=50px} -->  
+<center><img src="images/rstudio_layout.png" width=75%></center>  
+<br>
 
 ## Running Code
 
 <center><img src="images/run_line.png" width=75%></center>  
+<br>  
 
 ## R Script
 

@@ -26,13 +26,16 @@ RStudio Layout
 <center>
 <img src="images/rstudio_layout.png" width=75%>
 </center>
-<!-- ![](images/rstudio_layout.png){width=50px} -->
+<br>
+
 Running Code
 ------------
 
 <center>
 <img src="images/run_line.png" width=75%>
 </center>
+<br>
+
 R Script
 --------
 
