@@ -1,0 +1,187 @@
+---
+title: "ggplot2"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(ggplot2)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## Basic Scatterplot
+
+We will look at how to create a scatterplot using the `mpg` data frame.
+(A data frame is a rectangular colection of variables. This can be thought of similar to a spreadsheet.)
+
+### mpg Data 
+
+The `mpg` data frame contains observations collected by the US Environment Protection Agency on 38 models of car. Look at the help file using `?mpg` to see an explaination of each variable in the data.
+
+```{r show_data, exercise=TRUE, exercise.eval=TRUE, exercise.lines = 2}
+mpg
+```
+
+### Scatterplot
+
+The code below will create a plot which shows the relationship between  engine size (displ) and fuel efficiency (hwy).  
+Before you run the code, what would you expect the reationship to be?  
+Will cars with bigger engines use more fuel?
+
+```{r plot1, exercise=TRUE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+```
+
+### ggplot Template
+
+Creating a plot with ggplot uses a set format.  
+The data (`<DATA>`) is passed as part of the ggplot function, the type of graph is defined by the function which follows (`<GEOM_FUNCTION>`), and the `<MAPPINGS>` component defines which variables are plotted and can control other parts of the graph like the colour, size, etc...  
+
+```{r ggplot_template, echo=TRUE, eval=FALSE}
+ggplot(data = <DATA>) + 
+  <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
+```
+
+## Custom Aesthetics
+
+### Colour 
+
+We can convey more information in the data using the aesthetic in the plot. For example, the colour the points can be mapped to  the class of each car using `color = class`.
+
+```{r scatter_colour, exercise=TRUE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+```
+
+
+### Shading
+
+An alternative is to map the class to the transparency of the points using the alpha aesthetic `alpha = class`.
+
+```{r scatter_shade, exercise=TRUE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
+```
+
+### Shape
+
+Another alternative is to use different shapes, `shape = class`.
+
+```{r scatter_shape, exercise=TRUE, warning=FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, shape = class))
+```
+
+
+
+
+## Barplot
+
+### diamonds Data
+
+```{r show_data_diamonds, exercise=TRUE, exercise.eval=TRUE, exercise.lines = 2}
+diamonds
+```
+
+### Simple Barplot
+
+The `geom_bar` function is used to create a barchart.
+
+```{r simple_barplot, exercise=TRUE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut))
+```
+
+### Adding Colour
+
+The `fill` value inside of the aesthitic function can be used to add colour to the barchart.  
+
+Run the code below and then modify the code to fill the bars using the `clarity` variable.
+
+```{r barplots_colour, exercise=TRUE, exercise.lines = 4}
+# A barplot with colour for the different type of cut
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = cut))
+
+```
+
+```{r barplots_colour-solution}
+# A barplot coloured by clarity
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity))
+
+```
+
+
+### Changing the heights
+
+The argument `position` in the geom_bar function controls the postion and height of the bars in the barchart. `position = "fill"` sets the heights of the bars equal.
+
+Modify the code using `position = "dodge"`.
+
+```{r barplots_heights, exercise=TRUE, exercise.lines = 4}
+# A barplot coloured by clarity and expanded to equal heights
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "fill")
+
+```
+
+
+```{r barplots_heights-solution}
+# A barplot coloured with clarity separated within each cut
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge")
+
+```
+
+
+
+
+## Histogram
+
+A histogram can be created using the `geom_histogram` function.
+
+Change the value of `binwidth` to see how it effects the plot.
+
+```{r histogram_simple, exercise=TRUE}
+ggplot(diamonds) +
+  geom_histogram(mapping = aes(x = carat), binwidth = 0.01)
+
+```
+
+
+### Colour
+
+The `fill` argument in the `geom_histogram` function controls the colour of the histogram.
+
+The code creates a histogram of price which is coloured by the type of cut.
+
+```{r histogram_colour, exercise=TRUE}
+ggplot(diamonds) +
+  geom_histogram(mapping = aes(x = price, fill = cut), binwidth = 500)
+
+```
+
+
+
+## Further Customisation
+
+### Title and Axes Labels
+
+
+```{r scatter_title, exercise=TRUE, exercise.lines = 6}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class)) +
+  ggtitle("Engine Size vs Fuel Efficiency") +
+  xlab("Engine Size") + 
+  ylab("Fuel Efficiency")
+
+```
+
+
+## Exercise
+
+Question to create plot using many attributes....
