@@ -1,7 +1,7 @@
 ---
 title: "Using R - Intro"
 author: "Aidan Boland"
-date: "25/5/2018"
+date: "28/5/2018"
 output:
   ioslides_presentation:
     css: mystyle.css
@@ -19,8 +19,6 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## R & RStudio
 
-
-
 - [R](https://www.r-project.org/) is a free software environment 
     - Originally R was developed for statistical computing and graphics.
     - Now R is also used to create dynamic documents, presentaions and dashboards.
@@ -34,6 +32,7 @@ knitr::opts_chunk$set(echo = FALSE)
 - Download both R and RStudio. 
     - [https://www.r-project.org/](https://www.r-project.org/)
     - [https://www.rstudio.com/](https://www.rstudio.com/)
+<br>
 
 ## RStudio Layout
 
@@ -49,7 +48,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 - Download the R script [intro.R](https://github.com/aboland/learnR/blob/master/Rcode/intro.R)
 - Double click on the file and it should open in RStudio, continue there!
-
+<br>
 
 ## Tidyverse
 
