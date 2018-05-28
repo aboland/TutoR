@@ -13,6 +13,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+# use rmarkdown::render("Slides/...Rmd", output_format = "all")
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -37,11 +38,11 @@ knitr::opts_chunk$set(echo = FALSE)
 ## RStudio Layout
 
 <center><img src="images/rstudio_layout.png" width=75%></center>
-<!-- ![](images/rstudio_layout.png){width=50px} -->
+<!-- ![](images/rstudio_layout.png){width=50px} -->  
 
 ## Running Code
 
-<center><img src="images/run_line.png" width=75%></center>
+<center><img src="images/run_line.png" width=75%></center>  
 
 ## R Script
 
