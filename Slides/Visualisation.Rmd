@@ -1,15 +1,15 @@
 ---
 title: "Visualisation"
 author: "Aidan Boland"
-date: "26/5/2018"
+date: "28/5/2018"
 output:
+  github_document:
+    html_preview: false
   ioslides_presentation:
     css: mystyle.css
     logo: images/clavislogo.png
     smaller: true
     widescreen: yes
-  github_document:
-    html_preview: false
 ---
 
 ```{r setup, include=FALSE}
@@ -26,16 +26,37 @@ library(ggplot2)
 - For creating plots of data we will use the [ggplot2](http://ggplot2.tidyverse.org/) package.
 - We will follow the [data visualisation](http://r4ds.had.co.nz/data-visualisation.html) chapter from the [R for Data Science](http://r4ds.had.co.nz/index.html) book.
 
-## mpg Data
 
-- `mpg` contains observations collected by the US Environment Protection Agency on 38 models of car
+# Scatterplots
 
-<br>
-<center>
-```{r mpg, echo = FALSE}
-mpg
+
+```{r mpg_pretext, echo = FALSE, results='asis'}
+fmt <- rmarkdown::default_output_format(knitr::current_input())$name
+if (fmt == "ioslides_presentation") {
+  
+  cat("## mpg Data\n")
+  
+  cat("- `mpg` contains observations collected by the US Environment Protection Agency on 38 models of car\n")
+  
+  cat("<br>\n
+      <center>\n")
+}
 ```
-</center>
+
+```{r mpg, echo = FALSE}
+# fmt <- rmarkdown::default_output_format(knitr::current_input())$name
+if (fmt == "ioslides_presentation") {
+  return(mpg)
+}
+```
+
+```{r mpg_posttext, echo = FALSE, results='asis'}
+if (fmt == "ioslides_presentation") {
+  cat("</center>\n")
+  cat("<br>\n")
+}
+```
+
 
 ## mpg Data
 
@@ -44,7 +65,11 @@ mpg
 <br>
 
 - We will begin with the relationship between engine size (`displ`) and fuel efficiency (`hwy`)
-- What would you expect the reationship to be?
+- What would you expect the reationship to be?  
+
+<br>
+
+
 
 ## Basic Scatterplot
 
@@ -52,6 +77,9 @@ mpg
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy))
 ```
+  
+<br>
+
 
 ## Plot Template
 
@@ -61,11 +89,13 @@ ggplot(data = <DATA>) +
 ```
 
 - The ggplot2 template takes the above form
-- The data is passed as part of the ggplot function
+- The data (`<DATA>`) is passed as part of the ggplot function
 - The type of graph is defined by the function which follows (`<GEOM_FUNCTION>`)
     - We have seen previously the `geom_point` function which creates a scatterplot
     - There are different functions which create other type of graphs such as a bar chart `geom_bar`
-- The `<MAPPINGS>` component defines which variables are plotted and can control other parts of the graph like the colour, size, etc...
+- The `<MAPPINGS>` component defines which variables are plotted and can control other parts of the graph like the colour, size, etc...  
+
+<br>
 
 ## Scatterplot with Colour
 
@@ -73,6 +103,8 @@ ggplot(data = <DATA>) +
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, colour = class))
 ```
+  
+<br>
 
 ## Scatterplot with Shade
 
@@ -80,6 +112,8 @@ ggplot(data = mpg) +
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
 ```
+  
+<br>
 
 ## Scatterplot with Shape
 
@@ -87,43 +121,33 @@ ggplot(data = mpg) +
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, shape = class))
 ```
+  
+<br>
 
 
-<!-- ## Different geom Types -->
 
-<!-- ```{r bar1_car, echo = TRUE, fig.align='center'} -->
-<!-- ggplot(data = mpg) +  -->
-<!--   geom_bar(mapping = aes(x = class)) -->
-<!-- ``` -->
-
-<!-- ## Barplot -->
-
-<!-- ```{r bar2_car, echo = TRUE, fig.align='center'} -->
-<!-- ggplot(data = mpg) +  -->
-<!--   geom_bar(mapping = aes(x = class, fill = class)) -->
-<!-- ``` -->
-
-<!-- ## Barplot -->
-
-<!-- ```{r bar3_car, echo = TRUE, fig.align='center'} -->
-<!-- ggplot(data = mpg) +  -->
-<!--   geom_bar(mapping = aes(x = class, fill = trans)) -->
-<!-- ``` -->
+# Other Plots
 
 ## Different geom Types
 
 - `geom_point` scatterplot
 - `geom_bar` barplot
-- `geom_histogram` histogram
+- `geom_histogram` histogram  
+<br>
 
 ## Diamonds data
+
+- Diamonds is a dataset containing the prices and other attributes of almost 54,000 diamonds.
 
 <br>
 <center>
 ```{r diamonds, echo = FALSE}
-diamonds
+if (fmt == "ioslides_presentation") {
+  return(diamonds)
+}
 ```
-</center>
+</center>  
+<br>
 
 ## Barplot
 
