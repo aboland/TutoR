@@ -1,14 +1,17 @@
 # --- Visualisation
 
-# The library within the tidyverse used for visualisation
-# is the ggplot2 package. If you have already loaded the tidyverse
-# you do not need to reload ggplot2
+# The library within the tidyverse used for visualisations is the ggplot2 package
+# If you have already loaded the tidyverse you do not need to reload ggplot2
 library(ggplot2)
 
-# A data frame is a rectangular colection of variables. This can be
-# thought of similar to a spreadsheet. Columns can have different varable types
-# We will first look at the 'mpg' data frame which contains observations 
-# collected by the US Environment Protection Agency on 38 models of car
+
+# - Data Frame
+
+# We have not seen a data frame yet, a data frame is a rectangular colection of variables 
+# This can be thought of as similar to a spreadsheet 
+# We will first look at the `mpg` data frame which contains observations collected by the US 
+# Environment Protection Agency on 38 models of car
+# Look at the help file to see what the different columns represent
 mpg
 ?mpg
 

@@ -21,7 +21,6 @@ The idea for this course is to give an introduction to R. No prior coding experi
 [Visualisation slides](/Slides/Visualisation.md)
 
 - [visualisation.R](https://raw.githubusercontent.com/aboland/learnR/blob/master/Rcode/visualisation.R)
-
-- [Visualisation.Rmd](https://raw.githubusercontent.com/aboland/learnR/master/Tutorials/Visualisation/Visualisation.Rmd) (Interactive tutorial)
+- [visualisation.Rmd](https://raw.githubusercontent.com/aboland/learnR/master/Tutorials/Visualisation/Visualisation.Rmd) (Interactive tutorial)
 
 ### Week 3 - Data Manipulation (dplyr)

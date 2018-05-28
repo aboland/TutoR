@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ## Basic Scatterplot
 
 We will look at how to create a scatterplot using the `mpg` data frame.
-(A data frame is a rectangular colection of variables. This can be thought of similar to a spreadsheet.)
+(A data frame is a rectangular colection of variables. This can be thought of as similar to a spreadsheet.)
 
 ### mpg Data 
 
@@ -26,7 +26,7 @@ mpg
 
 ### Scatterplot
 
-The code below will create a plot which shows the relationship between  engine size (displ) and fuel efficiency (hwy).  
+The code below will create a plot which shows the relationship between engine size (displ) and fuel efficiency (hwy).  
 Before you run the code, what would you expect the reationship to be?  
 Will cars with bigger engines use more fuel?
 
