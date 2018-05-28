@@ -31,7 +31,8 @@ knitr::opts_chunk$set(echo = FALSE)
 
 - Download both R and RStudio. 
     - [https://www.r-project.org/](https://www.r-project.org/)
-    - [https://www.rstudio.com/](https://www.rstudio.com/)
+    - [https://www.rstudio.com/](https://www.rstudio.com/)  
+
 <br>
 
 ## RStudio Layout
@@ -42,12 +43,13 @@ knitr::opts_chunk$set(echo = FALSE)
 ## Running Code
 
 <center><img src="images/run_line.png" width=75%></center>  
-<br>  
+<br>
 
 ## R Script
 
 - Download the R script [intro.R](https://github.com/aboland/learnR/blob/master/Rcode/intro.R)
-- Double click on the file and it should open in RStudio, continue there!
+- Double click on the file and it should open in RStudio, continue there!  
+
 <br>
 
 ## Tidyverse

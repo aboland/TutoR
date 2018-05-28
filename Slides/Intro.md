@@ -18,7 +18,9 @@ R & RStudio
 
 -   Download both R and RStudio.
     -   <https://www.r-project.org/>
-    -   <https://www.rstudio.com/> <br>
+    -   <https://www.rstudio.com/>
+
+<br>
 
 RStudio Layout
 --------------
@@ -40,7 +42,9 @@ R Script
 --------
 
 -   Download the R script [intro.R](https://github.com/aboland/learnR/blob/master/Rcode/intro.R)
--   Double click on the file and it should open in RStudio, continue there! <br>
+-   Double click on the file and it should open in RStudio, continue there!
+
+<br>
 
 Tidyverse
 ---------
