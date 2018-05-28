@@ -6,7 +6,7 @@
 library(ggplot2)
 
 # A data frame is a rectangular colection of variables. This can be
-# though of similar to a spreadsheet. Columns can have different varable types
+# thought of similar to a spreadsheet. Columns can have different varable types
 # We will first look at the 'mpg' data frame which contains observations 
 # collected by the US Environment Protection Agency on 38 models of car
 mpg
@@ -38,6 +38,10 @@ ggplot(data = mpg) +
 
 
 # - Other types of plots
+
+# - Barplot 
+
+# diamonds data
 diamonds
 
 # A simple barplot
@@ -59,6 +63,9 @@ ggplot(data = diamonds) +
 # A barplot coloured with clarity separated within each cut
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge")
+
+
+# - Histogram
 
 # A histogram of carat
 ggplot(diamonds, aes(carat)) +

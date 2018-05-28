@@ -8,10 +8,12 @@ output:
     logo: images/clavislogo.png
     smaller: true
     widescreen: yes
+  github_document:
+    html_preview: false
 ---
 
 ```{r setup, include=FALSE}
-
+# use rmarkdown::render("Slides/...Rmd", format = "all")
 knitr::opts_chunk$set(fig.align='center')
 library(ggplot2)
 ```
@@ -63,7 +65,7 @@ ggplot(data = <DATA>) +
 - The type of graph is defined by the function which follows (`<GEOM_FUNCTION>`)
     - We have seen previously the `geom_point` function which creates a scatterplot
     - There are different functions which create other type of graphs such as a bar chart `geom_bar`
-- The `<MAPPINGS>` component defines whihc variables are plotted and can control other parts of the graph like the colour, size, etc...
+- The `<MAPPINGS>` component defines which variables are plotted and can control other parts of the graph like the colour, size, etc...
 
 ## Scatterplot with Colour
 

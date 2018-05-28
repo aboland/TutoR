@@ -6,6 +6,7 @@ runtime: shiny_prerendered
 
 ```{r setup, include=FALSE}
 library(learnr)
+library(dplyr)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -61,7 +62,7 @@ my_object
 
 *You can also assign a set (or vector) of values to a name.*  
 
-*A vector of values is written using `c(var1, var2, var3)`.*
+A vector of values is written using `c(var1, var2, var3)`.
 
 ```{r simple_vector, exercise=TRUE, exercise.lines = 4}
 my_vector <- c(1, 4, 6)
@@ -131,3 +132,15 @@ mean(my_vector2)
 mean(my_vector2, na.rm = TRUE)
 ```
 
+
+## Tidyverse
+
+We will cover the tidyverse in more detail in the coming weeks.  
+The pipe concept `%>%`, which passes the returned object on the left into the function on the right. The object is always passed as the first argument of the function.
+
+```{r tidyverse_simple, exercise=TRUE, exercise.lines = 5}
+my_vector2 <- c(3, 4, 5, NA)
+
+my_vector2 %>% mean
+my_vector2 %>% mean(na.rm = TRUE)
+```

@@ -20,8 +20,7 @@ log(10)
 
 # - Objects
 
-# You can assign values to a name, this is known as creating
-# an object
+# You can assign values to a name, this is known as creating an object
 my_object <- 4
 
 # Calling the object name will return the value
@@ -71,7 +70,7 @@ character_vector <- c("Hello", "World")
 mean(character_vector)
 tolower(character_vector)
 
-# Check the helpfiles to understand what these functions are doing
+# Check the help files to understand what these functions are doing
 paste(character_vector, collapse = " ")
 gsub("o", "", character_vector)
 sort(my_vector, decreasing = TRUE)
