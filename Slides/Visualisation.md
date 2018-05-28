@@ -6,13 +6,10 @@ Aidan Boland
 ggplot2
 -------
 
-<br> <br>
-
 -   For creating plots of data we will use the [ggplot2](http://ggplot2.tidyverse.org/) package.
 -   We will follow the [data visualisation](http://r4ds.had.co.nz/data-visualisation.html) chapter from the [R for Data Science](http://r4ds.had.co.nz/index.html) book.
 
-Scatterplots
-============
+<br>
 
 mpg Data
 --------
@@ -25,6 +22,9 @@ mpg Data
 -   What would you expect the reationship to be?
 
 <br>
+
+Scatterplots
+============
 
 Basic Scatterplot
 -----------------
