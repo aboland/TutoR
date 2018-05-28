@@ -18,47 +18,48 @@ print("Hello World")
 log(10)
 
 
-# - Variables
+# - Objects
 
-# You can assign variables to names
-my_variable <- 4
+# You can assign values to a name, this is known as creating
+# an object
+my_object <- 4
 
-# Calling the variable will return the value
-my_variable
+# Calling the object name will return the value
+my_object
 
-# You can also assign a set of variables
-# A set of variables is written using c(var1, var2, var3)
-my_set <- c(1, 4, 6)
-my_set
+# You can also assign a set of values (vector of values)
+# A vector of variables is written using c(var1, var2, var3)
+my_vector <- c(1, 4, 6)
+my_vector
 
 
 # - Functions
 
-# R has many built in functions to perform various operations
+# R has lots built in functions to perform various operations
 # There are also many packages available which have other useful functions
-mean(my_set)
-max(my_set)
+mean(my_vector)
+max(my_vector)
 seq(1, 10)
 
 one_to_ten <- seq(1, 10)
 length(one_to_ten)
 
 # There are help files for all functions. The help files will explain
-# what the function shoudl do and what arguments should/can be given.
+# what the function should do and what arguments should/can be given.
 # Help files can be accesed using ?
 ?mean
 
 # The helpfile explains the mean function and the available arguments
 # There is an optional argument na.rm, this removes NA values. A NA value
 # is a blank entry
-my_set2 <- c(3, 4, 5, NA)
-my_set2
+my_vector2 <- c(3, 4, 5, NA)
+my_vector2
 
 # What happens when we try to calculate the mean of a set of variables which
 # contain an NA entry?
-mean(my_set2)
+mean(my_vector2)
 # The additional arguments can fix this
-mean(my_set2, na.rm = TRUE)
+mean(my_vector2, na.rm = TRUE)
 
 
 # - Further examples
@@ -73,4 +74,4 @@ tolower(character_vector)
 # Check the helpfiles to understand what these functions are doing
 paste(character_vector, collapse = " ")
 gsub("o", "", character_vector)
-sort(my_set, decreasing = TRUE)
+sort(my_vector, decreasing = TRUE)
