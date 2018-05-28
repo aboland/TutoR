@@ -13,7 +13,6 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-# use rmarkdown::render("Slides/...Rmd", format = "all")
 knitr::opts_chunk$set(fig.align='center')
 library(ggplot2)
 ```
@@ -24,7 +23,9 @@ library(ggplot2)
 <br>
 
 - For creating plots of data we will use the [ggplot2](http://ggplot2.tidyverse.org/) package.
-- We will follow the [data visualisation](http://r4ds.had.co.nz/data-visualisation.html) chapter from the [R for Data Science](http://r4ds.had.co.nz/index.html) book.
+- We will follow the [data visualisation](http://r4ds.had.co.nz/data-visualisation.html) chapter from the [R for Data Science](http://r4ds.had.co.nz/index.html) book.  
+
+<br>
 
 
 # Scatterplots

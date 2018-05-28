@@ -13,7 +13,6 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-# use rmarkdown::render("Slides/...Rmd", output_format = "all")
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
