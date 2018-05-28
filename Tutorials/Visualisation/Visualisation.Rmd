@@ -1,6 +1,9 @@
 ---
 title: "ggplot2"
-output: learnr::tutorial
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: true
 runtime: shiny_prerendered
 ---
 
@@ -9,9 +12,9 @@ library(learnr)
 library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE)
 ```
+<!-- [ggplot2 cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) -->
 
-
-## Basic Scatterplot
+## Data Frame
 
 We will look at how to create a scatterplot using the `mpg` data frame.
 (A data frame is a rectangular colection of variables. This can be thought of as similar to a spreadsheet.)
@@ -24,7 +27,12 @@ The `mpg` data frame contains observations collected by the US Environment Prote
 mpg
 ```
 
-### Scatterplot
+
+
+## Scatterplot
+
+
+### Basic Scatterplot
 
 The code below will create a plot which shows the relationship between engine size (displ) and fuel efficiency (hwy).  
 Before you run the code, what would you expect the reationship to be?  
@@ -35,10 +43,10 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = hwy))
 ```
 
-### ggplot Template
+### ggplot2 Template
 
-Creating a plot with ggplot uses a set format.  
-The data (`<DATA>`) is passed as part of the ggplot function, the type of graph is defined by the function which follows (`<GEOM_FUNCTION>`), and the `<MAPPINGS>` component defines which variables are plotted and can control other parts of the graph like the colour, size, etc...  
+Creating a plot with ggplot2 uses a set format.  
+The data (`<DATA>`) is passed as part of the ggplot2 function, the type of graph is defined by the function which follows (`<GEOM_FUNCTION>`), and the `<MAPPINGS>` component defines which variables are plotted and can control other parts of the graph like the colour, size, etc...  
 
 ```{r ggplot_template, echo=TRUE, eval=FALSE}
 ggplot(data = <DATA>) + 

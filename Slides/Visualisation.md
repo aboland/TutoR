@@ -100,7 +100,8 @@ Different geom Types
 -   `geom_point` scatterplot
 -   `geom_bar` barplot
 -   `geom_histogram` histogram
-    <br>
+
+-   See RStudio's [cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) for more information on different graph types and many other helpful tips <br>
 
 Diamonds data
 -------------
