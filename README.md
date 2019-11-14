@@ -1,6 +1,6 @@
-# learnR
+# tutoR
 
-Contains all of the resources for [Clavis Insight's](https://www.clavisinsight.com/) lunch and learn R program.
+Contains all of the resources for [Edge by Ascential's](https://www.ascentialedge.com/) lunch and learn R program.
 
 <br>
 
@@ -8,22 +8,16 @@ The material will cover the set of packages in R known as the [*tidyverse*](http
 
 The idea for this course is to give an introduction to R. No prior coding experience is assumed. Following the material will hopefully enable anyone to leverage R to create visualisations, manipulate data and create reproducible reports.
 
-### Week 1 - Introduction to R
+### Tutorial 1 - Introduction to R
 
-[Intro slides](/Slides/Intro.md)
+- [Intro](/Tutorial_01_intro/Tutorial_01.md)
 
-- [intro.R](https://raw.githubusercontent.com/aboland/learnR/blob/master/Rcode/intro.R)
-- <a href="https://raw.githubusercontent.com/aboland/learnR/master/Rcode/intro_tidyverse.R" download> intro_tidyverse.R </a>  
+### Tutorial 2 - Visualisation (ggplot2)
 
+- [Interactive Tutorial](https://aboland.shinyapps.io/Tutorial_02_interactive/)  
+    - [RStudio's ggplot2 cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf)
 
-### Week 2 - Visualisation (ggplot2)
+### Tutorial 3 - Data Transformation (dplyr)
 
-[Visualisation slides](/Slides/Visualisation.md)
+- [Interactive Tutorial](https://aboland.shinyapps.io/Tutorial_03_interactive/) 
 
-- [visualisation.R](https://raw.githubusercontent.com/aboland/learnR/blob/master/Rcode/visualisation.R)
-- [visualisation.Rmd](https://raw.githubusercontent.com/aboland/learnR/master/Tutorials/Visualisation/Visualisation.Rmd) (Interactive tutorial)  
-
-
-- [RStudio's ggplot2 cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf)
-
-### Week 3 - Data Manipulation (dplyr)
