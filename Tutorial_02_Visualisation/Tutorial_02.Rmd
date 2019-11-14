@@ -1,7 +1,6 @@
 ---
 title: "Tutorial 2: Data Visualisation"
-output: learnr::tutorial
-runtime: shiny_prerendered
+output: github_document
 ---
 
 ```{r install packages, include=FALSE, eval=FALSE}
@@ -14,9 +13,9 @@ install.packages(c("learnr", "tidyverse", "rmarkdown", "scales", "maps", "gganim
 ```
 
 ```{r setup, include=FALSE}
-library(learnr)
+# library(learnr)
 library(tidyverse)
-knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center", cache = T)
 ```
 
 
@@ -77,14 +76,15 @@ ggplot(data = mpg) +
 ```
 
 
-**Exercise: Produce a scatterplot with `displ` on the x-axis and `hwy` (highway miles per gallon) on the y-axis.**
+#### Exercise 1
 
+Produce a scatterplot with `displ` on the x-axis and `hwy` (highway miles per gallon) on the y-axis. [Exercise 1 Solution]
 
-```{r ex1, exercise=TRUE}
+```{r ex1, exercise=TRUE, include=FALSE}
 ggplot()
 ```
 
-```{r ex1-solution}
+```{r ex1-solution, include=FALSE}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy))
 ```
@@ -112,12 +112,16 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = cty, colour = drv))
 ```
 
-**Exercise: Colour the scatterplot created in Exercise 1 using the `class` variable.**
+#### Exercise 2
 
-```{r ex2, exercise=TRUE, exercise.eval= FALSE}
+Colour the scatterplot created in Exercise 1 using the `class` variable. [Exercise 2 Solution]
+
+
+
+```{r ex2, exercise=TRUE, exercise.eval= FALSE, include=FALSE}
 ggplot()
 ```
-```{r ex2-solution}
+```{r ex2-solution, include=FALSE}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, colour = class))
 ```
@@ -127,13 +131,15 @@ ggplot(data = mpg) +
 - To colour all points in a plot the same colour, the argument must be outside the `aes` function.
 - Values inside the aes function are assumed to be variables.  
 
-**Exercise: Move the colour inside `aes` to see what happens.**
+#### Exercise 3
 
-```{r colourScatter_note, exercise= TRUE, exercise.eval= FALSE}
+Move the colour inside `aes` to see what happens. [Exercise 3 Solution]
+
+```{r colourScatter_note, exercise= TRUE, exercise.eval= FALSE, include=FALSE}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = cty),  colour = "blue")
 ```
-```{r colourScatter_note-solution}
+```{r colourScatter_note-solution, include=FALSE}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = cty,  colour = "blue"))
 ```
@@ -195,12 +201,15 @@ ggplot(data = diamonds) +
   geom_bar(mapping = aes(x = color))
 ```
 
-**Exercise: Create a barplot of the `cut` variable.**
+#### Exercise 4
 
-```{r ex3, exercise= TRUE}
+Create a barplot of the `cut` variable. [Exercise 4 Solution]
+
+
+```{r ex3, exercise= TRUE, include=FALSE}
 ggplot()
 ```
-```{r ex3-solution}
+```{r ex3-solution, include=FALSE}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut))
 ```
@@ -237,13 +246,15 @@ ggplot(diamonds) +
   geom_histogram(mapping = aes(price), binwidth = 250)
 ```
 
-**Exercise: Create a histogram of price but this time set the `binwidth` parameter to 1000. What effect does this have on the resulting plot?**
+#### Exercise 5
 
-```{r ex4, exercise= TRUE}
+Create a histogram of price but this time set the `binwidth` parameter to 1000. What effect does this have on the resulting plot? [Exercise 5 Solution]
+
+```{r ex4, exercise= TRUE, include=FALSE}
 ggplot()
 ```
 
-```{r ex4-solution}
+```{r ex4-solution, include=FALSE}
 ggplot(diamonds) +
   geom_histogram(aes(price), binwidth = 1000)
 ```
@@ -324,14 +335,16 @@ ggplot(data = mpg, mapping = aes(x = drv, y = cty, fill= drv)) +
 - The `coord_flip()` function will flip the x and y axis automatically.  
 - This is useful to display boxplots vertically.
 
-**Exercise: Use `coord_flip()` to change the plot.**
+#### Exercise 6
 
-```{r coord, exercise = TRUE, exercise.eval = TRUE}
+Use `coord_flip()` to change the plot. [Exercise 6 Solution]
+
+```{r coord, exercise = TRUE, exercise.eval = TRUE, include=FALSE}
 ggplot(data = mpg) + 
   geom_boxplot(aes(x = class, y = hwy))
 
 ```  
-```{r coord-solution}
+```{r coord-solution, include=FALSE}
 ggplot(data = mpg) + 
   geom_boxplot(aes(x = class, y = hwy)) +
   coord_flip()
@@ -348,16 +361,18 @@ ggplot(data = mpg) +
     - `subtitle` adds additional detail in a smaller font beneath the title.
     - `caption` adds text at the bottom right of the plot, often used to describe the source of the data.
 
-**Exercise: add a subtitle and caption to the plot below.**
+#### Exercise 7
 
-```{r labels_title, exercise = TRUE, exercise.eval = TRUE, , exercise.lines=4}
+Add a subtitle and caption to the plot below. [Exercise 7 Solution]
+
+```{r labels_title, exercise = TRUE, exercise.eval = TRUE, , exercise.lines=4, include=FALSE}
 ggplot(mpg) +
   geom_point(aes(displ, hwy, color = class)) +
   labs(title = "Fuel efficiency generally decreases with engine size")
 
 ```
 
-```{r labels_title-solution}
+```{r labels_title-solution, include=FALSE}
 ggplot(mpg) +
   geom_point(aes(displ, hwy, color = class)) +
   labs(title = "Fuel efficiency generally decreases with engine size",
@@ -503,7 +518,7 @@ counties <- map_data("county")
 
  # Combined county data
 all_county <- tidy_tuesday5 %>% 
-  mutate(County = tolower(County), State=tolower(State)) %>%
+  mutate(County = tolower(County), State = tolower(State)) %>%
   inner_join(counties, by = c("County" = "subregion", "State" = "region"))
 ```
 
@@ -520,7 +535,7 @@ counties <- map_data("county")  # data of coordinates of all counties in the US
 
  # Combined county data
 all_county <- tidy_tuesday5 %>% 
-  mutate(County=tolower(County), State=tolower(State)) %>%  # change county and state name to lowercase
+  mutate(County=tolower(County), State = tolower(State)) %>%  # change county and state name to lowercase
   inner_join(counties, by = c("County" = "subregion", "State" = "region"))
 
 all_county  # explore data
@@ -678,4 +693,59 @@ location_animation <- ggplot() +
 animate(location_animation, nframes = length(unique(turbine_data$p_year)), fps = 1, width = 800, height = 800)  # create animation
 
 ```
+
+
+
+# Solutions
+
+### Exercise 1 Solution
+
+```{r ex1-solution, echo =T}
+```
+
+[Back to Exercise 1][Exercise 1]
+
+
+
+### Exercise 2 Solution
+
+```{r ex2-solution, echo =T}
+```
+
+[Back to Exercise 2][Exercise 2]
+
+### Exercise 3 Solution
+
+```{r colourScatter_note-solution, echo =T}
+```
+
+[Back to Exercise 3][Exercise 3]
+
+### Exercise 4 Solution
+
+```{r ex3-solution, echo =T}
+```
+
+[Back to Exercise 4][Exercise 4]
+
+### Exercise 5 Solution
+
+```{r ex4-solution, echo =T}
+```
+
+[Back to Exercise 5][Exercise 5]
+
+### Exercise 6 Solution
+
+```{r coord-solution, echo=T}
+```
+
+[Back to Exercise 6][Exercise 6]
+
+### Exercise 7 Solution
+
+```{r labels_title-solution, echo=T}
+```
+
+[Back to Exercise 7][Exercise 7]
 

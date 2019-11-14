@@ -1,4 +1,4 @@
-# tutoR
+# TutoR
 
 Contains all of the resources for [Edge by Ascential's](https://www.ascentialedge.com/) lunch and learn R program.
 
@@ -12,12 +12,15 @@ The idea for this course is to give an introduction to R. No prior coding experi
 
 - [Intro](/Tutorial_01_intro/Tutorial_01.md)
 
+
 ### Tutorial 2 - Visualisation (ggplot2)
 
-- [Interactive Tutorial](https://aboland.shinyapps.io/Tutorial_02_interactive/)  
-    - [RStudio's ggplot2 cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf)
+- <a href="https://aboland.shinyapps.io/Tutorial_02_interactive/" rel="noopener noreferrer" target="_blank">Interactive Tutorial</a>
+- [R code](/Tutorial_02_Visualisation/Tutorial_02.Rmd)  
+    - <a href="https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf" rel="noopener noreferrer" target="_blank">RStudio's ggplot2 cheatsheet</a>
+
 
 ### Tutorial 3 - Data Transformation (dplyr)
 
-- [Interactive Tutorial](https://aboland.shinyapps.io/Tutorial_03_interactive/) 
-
+- <a href="https://aboland.shinyapps.io/Tutorial_03_interactive/" rel="noopener noreferrer" target="_blank">Interactive Tutorial</a>
+- [R code](/Tutorial_03_Transformation/Tutorial_03.Rmd)
