@@ -105,9 +105,8 @@ ggplot(data = mpg) +
 #### Exercise 1
 
 Produce a scatterplot with `displ` on the x-axis and `hwy` (highway
-miles per gallon) on the y-axis.
-
-[Exercise 1 Solution](#exercise-1-solution)
+miles per gallon) on the y-axis. [Exercise 1
+Solution](#exercise-1-solution)
 
 ### Graphing Template
 
