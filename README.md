@@ -17,11 +17,13 @@ The idea for this course is to give an introduction to R. No prior coding experi
 
 - <a href="https://aboland.shinyapps.io/Tutorial_02_interactive/" rel="noopener noreferrer" target="_blank">Interactive Tutorial</a>
 - [Static Tutorial](Tutorial_02_Visualisation/Tutorial_2.md)
-- <a href="https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_02_Visualisation/Tutorial_02.Rmd" download>R code</a>
-    - <a href="https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf" rel="noopener noreferrer" target="_blank">RStudio's ggplot2 cheatsheet</a>
+    - <a href="https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_02_Visualisation/Tutorial_02.Rmd" download>R code</a>
+<br>
+
+- <a href="https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf" rel="noopener noreferrer" target="_blank">RStudio's ggplot2 cheatsheet</a>
 
 
 ### Tutorial 3 - Data Transformation (dplyr)
 
 - <a href="https://aboland.shinyapps.io/Tutorial_03_interactive/" rel="noopener noreferrer" target="_blank">Interactive Tutorial</a>
-- [R code](/Tutorial_03_Transformation/Tutorial_03.Rmd)
+- <a href="https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_02_Visualisation/Tutorial_03.Rmd" download>R code</a>
