@@ -1,4 +1,6 @@
 
+# Tutorial 2: Data Visualisation
+
 ## Introduction
 
   - This interactive tutorial will give an introduction on how to use R

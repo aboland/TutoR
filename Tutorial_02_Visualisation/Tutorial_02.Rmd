@@ -2,10 +2,15 @@
 title: "Tutorial 2: Data Visualisation"
 output: 
   github_document:
+    pandoc_args: [
+      "--output=README.md"
+    ]
     toc: true
 params:
   static: TRUE
 ---
+
+# Tutorial 2: Data Visualisation
 
 ```{r child = 'Tutorial_02_content.Rmd'}
 ```

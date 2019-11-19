@@ -1,0 +1,864 @@
+
+```{r, echo=FALSE}
+is_static <- params$static
+```
+
+
+
+```{r setup, include=FALSE}
+if (!is_static)
+  library(learnr)
+library(tidyverse)
+knitr::opts_chunk$set(echo = is_static, fig.align = "center", cache = is_static, warning = FALSE, message = FALSE)
+
+
+library(nycflights13)
+
+pulseData <- read_tsv("https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_03_Transformation/pulse.txt")
+fastFoodData <- read_csv("https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_03_Transformation/fastfood_calories.csv")
+load(url("https://github.com/aboland/TutoR/raw/master/Tutorial_03_Transformation/olive.Rdata?raw=true"))
+
+missingData <- filter(pulseData, !complete.cases(pulseData))
+cleanPulseData <- na.omit(pulseData)
+```
+
+
+## Introduction  {data-progressive=TRUE}
+
+
+This tutorial will show you how to read in datasets to R, save datasets as files and deal with missing data. We will also look at the `filter()`, `arrange()` and `select()` functions which are useful for data transformation.
+We will also look at the `group_by()` and `summarise()` functions which are useful for creating summary statistics. We will finish off looking at the concept of the pipe operator which helps to create *readable* code.
+
+
+### Loading Datasets {data-allow-skip=TRUE}
+
+
+-   The function used to read in the individual files depends on the file type. We will look at some functions included in the `readr` pacakge.
+
+- `read_csv()` reads comma delimited files, `read_csv2()` reads semicolon separated files (common in countries where , is used as the decimal place), `read_tsv()` reads tab delimited files, and `read_delim()` reads in files with any delimiter.
+    - There are many arguments you can use dependin on the structure of your file.
+    - You can use `col_names = FALSE` to tell `read_csv()` not to treat the first row as headings
+
+-   `load()` is a base function used for reading in `.Rdata` files.
+
+- In the examples below we are reading directly from the Github repository online.  
+- **In practice you will be reading from a location on your local machine.**
+    - e.g. `read_tsv("user/downloads/pulse.txt")`
+    
+```{r readtable, exercise= TRUE, exercise.eval=FALSE}
+pulseData <- read_tsv("https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_03_Transformation/pulse.txt")
+pulseData
+```
+
+
+
+```{r readcsv, exercise= TRUE, exercise.eval= FALSE}
+fastFoodData <- read_csv("https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_03_Transformation/fastfood_calories.csv", col_names = TRUE)
+
+fastFoodData
+```
+
+
+
+```{r ex-load, exercise= TRUE, exercise.eval= FALSE}
+load(url("https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_03_Transformation/olive.Rdata?raw=true"))
+head(olive) 
+```
+
+
+-   When reading in data, it is useful to assign names to the input as then the datasets can easily be included in other functions.
+
+<!-- -   As the files were saved in the working directory **R Tutorials**, only the file name was needed in the function. However, if the file was saved in another location, the full filepath would need to be included e.g. `read.table("user/downloads/pulse.txt")`. You must use forward slashes in the file path, R will return an error if backwards slashes are used. -->
+
+
+
+### Saving Datasets {data-allow-skip=TRUE}
+
+-   It is also possible to save datasets created or worked on in R as files.
+
+-   The `write_delim()` function can be used to do this. The function takes the form `write_delim(x, path, delim)` where `x` is the name of the dataset in R and `path` is name of the file you wish to create. The `delim` parameter is the method by which each row of data is separated in the resulting file, with the default separator set to a space.
+    - Since this is an interactive tutorial we won't run the write.table command.
+    - `write_delim(pulseData, path = "savedPulse.csv", delim = "\t")` would save the `pulseData` data as a tab separated file.  
+
+-   The `write_csv()` is an alternative function which will save the data in a comma separated form. The function takes the form `write_csv(x, file,)` where `x` is the name of the dataset in R and `path` is name of the file you wish to create.
+
+
+
+
+
+## Missing Data  {data-progressive=TRUE}
+
+
+-   Datasets often can contain missing data.
+
+-   The `complete.cases()` function is used to identify the rows of data which are complete i.e. do not contain missing data.
+
+-   Sometimes it is helpful to take a closer look at cases with missing data as opposed to just deleting them.
+
+-   Run the following code to find any missing data in the `pulseData` dataframe and save them in a new dataframe called `missingData`.
+
+
+```{r ex-pulse-complete, exercise= TRUE, exercise.eval= FALSE}
+missingData <- filter(pulseData, !complete.cases(pulseData))
+```
+
+
+-   The `!` in R is a negative operator, i.e. the code above is searching for cases that are **not** complete.
+
+-   We will cover the `filter` function in the next section.
+
+### Analysing the Missing Data
+
+-   The `summary()` function is useful for quickly analysing a dataset.
+
+```{r ex-pulse-summary, exercise= TRUE, exercise.eval= FALSE}
+summary(missingData)
+```
+
+
+
+### Removing Missing Data
+
+-   After analysing the cases which contain missing elements, sometimes we then wish to remove them from our original dataset.
+
+#### Exercise 1
+
+**Use the `complete.cases()` function to create a new dataframe called `cleanPulseData` which contains no missing data.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 1 Solution]  ")
+```
+
+```{r ex01-pulse, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+cleanPulseData <- pulseData
+
+head(cleanPulseData)
+```
+
+```{r ex01-pulse-solution, include=!is_static}
+cleanPulseData  <- filter(pulseData, complete.cases(pulseData))
+
+```
+
+```{r ex01-static, include=!is_static, include=FALSE, eval=FALSE}
+cleanPulseData  <- filter(pulseData, complete.cases(pulseData))
+```
+
+<br>
+
+-   An alternative method of removing missing data is to use the `na.omit()` function:
+    - Note how the use of `na.omit` differs to `complete.cases`
+    - It is a standalone function which returns a dataset
+    
+```{r ex-pulse-naomit, exercise= TRUE, exercise.eval= FALSE}
+cleanPulseData <- na.omit(pulseData)
+cleanPulseData
+```
+
+<br><br>
+
+## Data Transformation  {data-progressive=TRUE}
+
+-   The `filter()`, `arrange()` and `select()` functions are from the `dplyr` package which is a member of the `tidyverse` packages.
+
+### `filter()`
+
+-   The `filter()` function allows you to easily subset observations based on their values.  
+
+-   There are a number of different comparison operators which can be used.
+    - `<`, `>` less than, greater than.
+    - `<=`, `>=` less than or equal to, greater than or equal to.
+    - `==` equal to.
+    - `!=` not equal.  
+
+
+-   The data to be subsetted is first specified and the subsequent arguments are the expressions that filter the data frame.
+
+-   For example, you may wish to create a subset of cases from `cleanPulseData` containing only individuals who smoke and weigh over 160.
+
+```{r pulse-filter, exercise= TRUE, exercise.eval= FALSE}
+smokersOver160 <- filter(cleanPulseData, 
+                         RestingPulse == "Low", 
+                         Smokes == "Yes", 
+                         Weight > 160)
+smokersOver160
+```
+
+
+#### Exercise 2
+
+**Create a subset from `cleanPulseData` which contains individuals with a low resting pulse who do not smoke and weight less than 180. Name the subset `lowRateNonSmokers`.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 2 Solution]  ")
+```
+
+```{r ex-pulse-filter, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+
+```
+
+```{r ex-pulse-filter-solution, include=!is_static}
+lowRateNonSmokers <- filter(cleanPulseData, 
+                            Smokes == "No", 
+                            Weight < 180)
+lowRateNonSmokers
+```
+
+```{r ex02-static, include=FALSE, eval=FALSE}
+lowRateNonSmokers <- filter(cleanPulseData, 
+                            Smokes == "No", 
+                            Weight < 180)
+lowRateNonSmokers
+```
+
+<br>
+
+#### Exercise 3
+
+**Create a subset containing individuals with a weight that is less than or equal to 170.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 3 Solution]  ")
+```
+
+```{r ex-pulse-subset, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+
+```
+
+```{r ex-pulse-subset-solution, include=!is_static}
+lessThanOrEqualTo170 <- filter(cleanPulseData, 
+                               Weight <= 170)
+head(lessThanOrEqualTo170)
+```
+
+```{r ex03-static, include=FALSE, eval=FALSE}
+lessThanOrEqualTo170 <- filter(cleanPulseData, 
+                               Weight <= 170)
+head(lessThanOrEqualTo170)
+```
+
+<br>
+
+### `arrange()`
+
+-   The `arrange()` function sorts and orders the contents of a dataframe.
+
+```{r pulse-arrange1, exercise= TRUE, exercise.eval= FALSE}
+weightOrder <- arrange(cleanPulseData, Weight)
+weightOrder
+```
+
+
+-   The data frame is arranged in ascending order by default. However, you can sort the data by descending order using the following code:
+
+```{r pulse-arrange2, exercise= TRUE, exercise.eval= FALSE}
+weightOrderDesc <- arrange(cleanPulseData, desc(Weight))
+weightOrderDesc
+```
+
+-   It is also possible to include more than one column name in the `arrange()` function.
+
+```{r pulse-arrange3, exercise= TRUE, exercise.eval= FALSE}
+smokesAndPulseOrder <- arrange(cleanPulseData, Smokes, RestingPulse)
+smokesAndPulseOrder
+```
+
+
+#### Exercise 4
+
+**Run the above function again but this time input `RestingPulse` into the function before `Smokes`. What effect does this have on the resulting dataset.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 4 Solution]  ")
+```
+
+```{r ex-pulse-arrange, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+
+```
+
+```{r ex-pulse-arrange-solution, include=!is_static}
+pulseAndSmokesOrder <- arrange(cleanPulseData, RestingPulse, Smokes)
+head(pulseAndSmokesOrder)
+```
+
+```{r ex04-static, include=FALSE, echo=FALSE}
+pulseAndSmokesOrder <- arrange(cleanPulseData, RestingPulse, Smokes)
+head(pulseAndSmokesOrder)
+```
+
+<br>
+
+### `select()`
+
+-   The `select()` function allows you select only the variables you are interested in from a data frame.
+
+-   For example, some datasets may contain hundreds of variables but you may only wish to analyse a few of them.
+
+-   `fastFoodData` has 18 variables for each of its 515 observations. The code below shows how the `select()` function can be used to create a new dataset with less variables.
+
+```{r pulse-select, exercise= TRUE, exercise.eval= FALSE}
+fastFoodDataSimplified <- select(fastFoodData, 
+                                 restaurant, 
+                                 item, 
+                                 calories)
+head(fastFoodDataSimplified)
+```
+
+#### Exercise 5
+
+**Use the `select()` function to create a data frame called `fastFoodNutrition` which contains the variables `restaurant`, `item`, `calories`, `total_fat`, `sugar` and `protein`.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 5 Solution]  ")
+```
+
+```{r ex-pulse-select, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+
+```
+
+```{r ex-pulse-select-solution, include=!is_static}
+fastFoodNutrition <- select(fastFoodData, 
+                            restaurant, 
+                            item, 
+                            calories, 
+                            total_fat, 
+                            sugar, 
+                            protein)
+fastFoodNutrition
+```
+
+```{r ex05-static, inculde = FALSE, echo=FALSE}
+fastFoodNutrition <- select(fastFoodData, 
+                            restaurant, 
+                            item, 
+                            calories, 
+                            total_fat, 
+                            sugar, 
+                            protein)
+fastFoodNutrition
+```
+
+
+<br><br>
+
+
+
+## More Transformations  {data-progressive=TRUE}
+
+```{r, include=!is_static}
+playerData <- read_csv("https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_03_Transformation/player_data.csv")
+
+cat("The `playerData` dataset has been pre-loaded. Explore the data below.  \n")
+```
+
+```{r ex-player_explore, exercise=TRUE, exercise.eval=TRUE, include=!is_static}
+playerData
+```
+
+
+
+```{r, include=is_static, echo=F}
+cat("The `playerData` dataset can be read in as follows.")
+```
+
+```{r, include=is_static}
+playerData <- read_csv("https://raw.githubusercontent.com/aboland/TutoR/master/Tutorial_03_Transformation/player_data.csv")
+playerData
+```
+
+
+There are further helpful functions for data transformation such as `mutate()`, `transmutate()`, `group_by()` and `ungroup()`. These functions will then be used in conjunction with functions from the previous section.
+
+### `mutate()`
+
+-   The `mutate()` function allows you create new columns (variables) that are functions of existing columns and adds them to the dataframe.
+
+-   For example, the `playerData` dataset has two variables `year_start` and `year_end` which represent the year a player started their career and the year they stopped playing professionally. It is therefore possible to add a new column `years_active` to the existing dataset by doing the following:
+
+
+```{r ex-player_mutate, exercise=TRUE, exercise.eval=FALSE}
+playerData <- mutate(playerData, years_active = year_end - year_start)
+
+playerData_select <- select(playerData, name, years_active)
+playerData_select
+```
+
+-   It is possible to create multiple new variables within the same `mutate()` function using the following format: `mutate(data, newVariable1, newVariable2, newVariable3, ...)`.
+
+### `transmute()`
+
+-   If you only wish to keep the new variables you have created, you can do so using the `transmute()` function as shown below:
+
+```{r ex-player_transmutate, exercise=TRUE, exercise.eval=FALSE}
+playerData_select <- transmute(playerData, years_active = year_end - year_start)
+playerData_select
+```
+
+
+<br><br>
+
+```{r, include=FALSE}
+library(nycflights13)
+```
+
+
+### NYC Flights {data-allow-skip=TRUE}
+
+- The [nycflights13](https://github.com/hadley/nycflights13) data contains information about all flights that departed from NYC (e.g. EWR, JFK and LGA) in 2013 (336,776 flights in total).  
+
+```{r ex-flights_explore-static, include=is_static}
+library(nycflights13)
+flights
+```
+
+```{r ex-flights_explore, exercise= TRUE, exercise.eval= TRUE, include=!is_static}
+flights
+```
+
+<br>
+
+#### Exercise 6
+
+**Add a new variable to the flights dataset called `kmPerMinute` by dividing the `distance` variable by the `air_time` variable.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 6 Solution]  ")
+```
+
+```{r ex-flights, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+flights
+```
+
+```{r ex-flights-solution, include=!is_static}
+flights <- mutate(flights, kmPerMinute = distance/air_time)
+flights
+```
+
+```{r ex06-static, include=FALSE, echo=FALSE}
+flights <- mutate(flights, kmPerMinute = distance/air_time)
+flights
+```
+
+<br><br>
+
+## Grouping  {data-progressive=TRUE}
+
+### `group_by()`
+
+-   The `group_by()` function groups entries in a dataset by given variables.
+
+-   This is particularly useful when used in conjunction with the `summarise()` function.
+    - There are many useful summary functions which can be used inside the summarise.
+    - `n()`, when used inside summarise this will count the number in each group.
+    - `mean()` calculates the average of a variable across each group.
+    - `min()`, `max()`, min and max values in the group.
+
+
+-   Try running the following code which groups the players in the dataset by their college and then finds the average number of years players from different colleges are active.
+
+```{r, include=FALSE}
+playerData <- mutate(playerData, years_active = year_end - year_start)
+```
+
+```{r ex-player_groupby, exercise= TRUE, exercise.eval= FALSE}
+byCollege <- group_by(playerData, college)
+summarise(byCollege, averageYearsActive = mean(years_active))
+```
+
+
+#### Exercise 7 
+
+**Group the dataset using the `year_start` variable and then find the maximum `year_end` associated with each starting year.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 7 Solution]  ")
+```
+
+```{r ex7-player, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+byStartYear <- group_by(playerData)
+summarise(byStartYear)
+
+```
+
+```{r ex7-player-solution, include=!is_static}
+byStartYear <- group_by(playerData, year_start)
+summarise(byStartYear, maxYearEnd = max(year_end))
+
+```
+
+```{r ex07-static, include=FALSE, echo=FALSE}
+byStartYear <- group_by(playerData, year_start)
+summarise(byStartYear, maxYearEnd = max(year_end))
+```
+
+
+#### Exercise 8 
+
+**Group the `flights` dataset by `dest` and `carrier` then find the average distance for each grouping.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 8 Solution]  ")
+```
+
+```{r ex8-player, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+byDestAndCarrier <- group_by(flights)
+summarise(byDestAndCarrier)
+
+```
+
+```{r ex8-player-solution, include=!is_static}
+byDestAndCarrier <- group_by(flights, dest, carrier)
+summarise(byDestAndCarrier, averageDistance = mean(distance))
+
+```
+
+```{r ex08-static, include=FALSE, echo=FALSE}
+byDestAndCarrier <- group_by(flights, dest, carrier)
+summarise(byDestAndCarrier, averageDistance = mean(distance))
+```
+
+
+<br>
+
+### `ungroup()`
+
+-   If you wish to remove a grouping, you can do so simply by using the `ungroup()` function as follows:
+
+```{r , include=FALSE}
+byCollege <- group_by(playerData, college)
+```
+
+```{r ex-player_ungroup, exercise= TRUE, exercise.eval= FALSE}
+byCollege <- group_by(playerData, college)
+ungroup(byCollege)
+```
+
+<br><br>
+
+## Piping  {data-progressive=TRUE}
+
+- The pipe operator is a powerful way to create readable code. 
+
+
+
+### Combining multiple operations with the pipe
+
+- We will look at the flight data again.
+- If we want to explore the relationship between distance and average delay for each location, we would write something similar to below.
+
+```{r ex-flights_standard, exercise= TRUE, exercise.eval= FALSE}
+by_dest <- group_by(flights, dest)  # group by destination
+delay <- summarise(by_dest,
+  count = n(),  # number of flights
+  dist = mean(distance, na.rm = TRUE),  # average distance
+  delay = mean(arr_delay, na.rm = TRUE)  # average delay
+)
+delay <- filter(delay, count > 20, dest != "HNL")  # filter locations with more than 20 flights
+
+ # Plot the data
+ggplot(data = delay, mapping = aes(x = dist, y = delay)) +
+  geom_point(aes(size = count), alpha = 1/3)
+```
+
+- There are three steps to prepare this data:
+    - Group flights by destination.
+    - Summarise to compute distance, average delay, and number of flights.
+    - Filter to remove noisy points and Honolulu airport, which is almost twice as far away as the next closest airport
+
+- There’s another way to tackle the same problem with the pipe operator `%>%`.
+
+### How `%>%` works
+
+```{r ex_flights_pipe, exercise= TRUE, exercise.eval= FALSE}
+delay <- flights %>% 
+  group_by(dest) %>% 
+  summarise(
+    count = n(),
+    dist = mean(distance, na.rm = TRUE),
+    delay = mean(arr_delay, na.rm = TRUE)
+  ) %>% 
+  filter(count > 20, dest != "HNL")
+
+ggplot(data = delay, mapping = aes(x = dist, y = delay)) +
+  geom_point(aes(size = count), alpha = 1/3)
+```
+
+- If we have a dataset `some_data` and a function `function_1(arg1, arg2)`
+
+- Normally we would use the function as follows:
+   - `function_1(arg1 = some_data, arg2 = value)`
+
+- With the pipe operator we could call the function like so:
+    - `some_data %>% function_1(arg2 = value)`
+
+- The pipe operator passes the input as the first argument to the next function.
+- Multiple functions can be used in sequence.
+- The results from a function will be passed on to the next function.
+    - `some_data %>% function_1(f1_arg2 = value) %>% function_2(f2_arg2 = other_value)`
+
+
+<br>
+
+In the last exercise we grouped the `flights` dataset by `dest` and `carrier`, and then found the average distance for each grouping.  
+
+#### Exercise 9 
+
+**Rewrite the code using the `%>%` operator.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 9 Solution]  ")
+```
+
+```{r ex10-player, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+byDestAndCarrier <- group_by(flights, dest, carrier)
+summarise(byDestAndCarrier, averageDistance = mean(distance))
+```
+
+```{r ex10-player-solution, include=!is_static}
+flights %>% 
+  group_by(dest, carrier) %>%
+  summarise(averageDistance = mean(distance))
+```
+
+```{r ex09-static, include=FALSE, echo=FALSE}
+flights %>% 
+  group_by(dest, carrier) %>%
+  summarise(averageDistance = mean(distance))
+```
+
+
+<br><br>
+
+## Data Visualisation
+
+-   Before plotting a graph it is often useful to employ some data manipulation techniques on a dataframe.
+
+-   This allows us to create plots that are more specific which can aid us in data analysis.
+
+-   This section should help to consolidate what you have already learned while also incorporating the new techniques from this week.
+
+### Example
+
+Look at the following code. Do you understand what the functions are doing and what the resulting graph is representing?
+
+```{r ex_player_pipe, exercise= TRUE, exercise.eval= FALSE}
+averageYearsActive <- 
+  playerData %>% 
+  filter(year_start > 1990) %>%
+  mutate(years_active = year_end - year_start) %>%
+  group_by(year_start) %>% 
+  summarise(meanYearsActive = mean(years_active))
+
+ggplot(data = averageYearsActive) + 
+  geom_point(mapping = aes(x = year_start, y = meanYearsActive)) +
+  labs(x= "First year", y = "Average years active")
+```
+
+```{r ex_player_pipe-solution}
+ # The plot shows the average years active vs the first year a player played
+ # For players who begun playing after 1990 only
+
+ # As you might expect, the average years active drops for players who begun after 2010
+```
+
+
+#### Exercise 10 
+
+**Using `playerData` create a boxplot comparing a players position and their weight. Note: In some cases players have switched positions and therefore their position values are equal to `G-F`, `F-C` etc. Do not alter the values, simply consider `G-F` as a seperate group to `G` and `F`.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 10 Solution]  ")
+```
+
+```{r ex10-boxplot, exercise= TRUE, exercise.eval= FALSE, include=!is_static}
+
+```
+
+```{r ex10-boxplot-solution, include=!is_static}
+ggplot(data = playerData, mapping = aes(x = position, y = weight)) + 
+  geom_boxplot()
+```
+
+```{r ex10-solution-static, include=FALSE, echo=FALSE}
+ggplot(data = playerData, mapping = aes(x = position, y = weight)) + 
+  geom_boxplot()
+```
+
+
+#### Exercise 11 
+
+**Create a bar plot using the positions variable but only for players of height of 6-8. Colour the bars based on the position.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 11 Solution]  ")
+```
+
+```{r ex11-barplot, exercise=TRUE, exercise.eval=FALSE, include=!is_static}
+
+```
+
+```{r ex11-barplot-solution, include=!is_static}
+playerData %>% 
+  filter(height == "6-8") %>%
+  ggplot() + 
+  geom_bar(mapping = aes(x = position, fill = position))
+```
+
+```{r ex11-solution-static, include=FALSE, echo=FALSE}
+playerData %>% 
+  filter(height == "6-8") %>%
+  ggplot() + 
+  geom_bar(mapping = aes(x = position, fill = position))
+```
+
+
+#### Exercise 12 
+
+**Group `playerData` by `college` and find the minimum `year_start` for each college. Create a bar plot of the number of colleges for each minimum start year up to and including 1955.**
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Exercise 12 Solution]  ")
+```
+
+```{r ex13-barplot, exercise=TRUE, exercise.eval=FALSE, include=!is_static}
+
+```
+
+```{r ex13-barplot-solution, include=!is_static}
+playerData %>% 
+  group_by(college) %>% 
+  summarise(minYear = min(year_start)) %>% 
+  filter(minYear <= 1955) %>% 
+  ggplot() + 
+  geom_bar(mapping = aes(x = minYear))
+```
+
+```{r ex12-solution-static, include=FALSE, echo=FALSE}
+playerData %>% 
+  group_by(college) %>% 
+  summarise(minYear = min(year_start)) %>% 
+  filter(minYear <= 1955) %>% 
+  ggplot() + 
+  geom_bar(mapping = aes(x = minYear))
+```
+For more information and examples on the functions used in this weeks tutorial and how to incorporate them in graphs, read the [data transformation](https://r4ds.had.co.nz/transform.html) and the [exploratory data analysis](https://r4ds.had.co.nz/exploratory-data-analysis.html) chapters from the [R for Data Science](http://r4ds.had.co.nz/index.html) book.
+
+
+
+
+<br><br>
+
+
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("# Solutions")
+
+cat("\n### Exercise 1 Solution")
+```
+
+```{r ex01-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 1][Exercise 1]  \n")
+
+cat("\n### Exercise 2 Solution")
+```
+
+```{r ex02-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 2][Exercise 2]  \n")
+
+cat("\n### Exercise 3 Solution")
+```
+
+```{r ex03-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 3][Exercise 3]  \n")
+
+cat("\n### Exercise 4 Solution")
+```
+
+```{r ex04-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 4][Exercise 4]  \n")
+
+cat("\n### Exercise 5 Solution")
+```
+
+```{r ex05-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 5][Exercise 5]  \n")
+
+cat("\n### Exercise 6 Solution")
+```
+
+```{r ex06-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 6][Exercise 6]  \n")
+
+cat("\n### Exercise 7 Solution")
+```
+
+```{r ex07-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 7][Exercise 7]  \n")
+
+cat("\n### Exercise 8 Solution")
+```
+
+```{r ex08-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 8][Exercise 8]  \n")
+
+cat("\n### Exercise 9 Solution")
+```
+
+```{r ex09-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 9][Exercise 9]  \n")
+
+cat("\n### Exercise 10 Solution")
+```
+
+```{r ex10-solution-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 10][Exercise 10]  \n")
+
+cat("\n### Exercise 11 Solution")
+```
+
+```{r ex11-solution-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 11][Exercise 11]  \n")
+
+cat("\n### Exercise 12 Solution")
+```
+
+```{r ex12-solution-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis', echo=FALSE}
+cat("[Back to Exercise 12][Exercise 12]  \n")
+```
+
