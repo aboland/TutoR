@@ -1,0 +1,820 @@
+
+
+
+```{r setup, include=FALSE}
+if (!is_static)
+  library(learnr)
+
+library(tidyverse)
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", cache = TRUE)
+```
+
+
+## Introduction
+
+- This interactive tutorial will give an introduction on how to use R to produce graphs such as scatterplots, bar charts, histograms and boxplots. The use of graphics can help with the interpretation of large datasets and enhance reports.
+
+- We will use the ggplot2 package, which is a member of the tidyverse package, to produce plots of our data.
+
+- This tutorial will introduce many techniques. For additional information and examples on how to use `ggplot2` to plot data, read the [data visualisation](http://r4ds.had.co.nz/data-visualisation.html) chapter from the [R for Data Science](http://r4ds.had.co.nz/index.html) book.
+
+
+### Installing and Loading Packages
+
+- In order to run this interactive tutorial, you had to install a number of packages.
+- There are thousands of packages available for R, some more useful than others.
+
+- Packages can be installed using the `install.packages` command.
+    - `install.packages("tidyverse")`
+
+- To then use the package you need to load it by typing the following:
+    - `library(tidyverse)`
+
+- **Note:** you only need to install a package once, however, you need to load it every time you start a new session and want to use that package. 
+
+
+
+### `mpg` Dataset
+
+- R already has datasets available that we can graph.
+- For the beginning of this lesson we will use the `mpg` dataset from the tidyverse package. 
+- It contains observations collected by the US Environmental Protection Agency on  different car models.
+- Consult the helpfile which can be found <a href="https://ggplot2.tidyverse.org/reference/mpg.html" rel="noopener noreferrer" target="_blank">here</a> to find more information on the data, including a description of the variables.
+
+
+- Before we start to graph this dataset it is important to take a look at its contents.
+```{r text-for-interactive, include=!is_static , results='asis'}
+cat(
+  "- The box below is an active code environment.  
+    - We will use these throughout this tutorial.\n
+- Click the **run code** button at the top right of the code box to execute the code.
+- This runs the code in R in the background and displays the results here."
+)
+```
+
+```{r mpg_show_data, exercise = TRUE, exercise.lines=2}
+mpg
+```
+
+
+
+
+
+## Scatterplots  {data-progressive=TRUE}
+
+- We will start by producing a basic scatterplot of the `displ` (engine displacement in litres) and `cty` (city miles per gallon) variables. 
+
+```{r firstScatterplot, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = cty))
+```
+
+
+#### Exercise 1
+
+**Produce a scatterplot with `displ` on the x-axis and `hwy` (highway miles per gallon) on the y-axis.**
+
+```{r, include=is_static, results='asis'}
+cat("[Exercise 1 Solution]  ")
+```
+
+```{r ex1, exercise=TRUE, include=!is_static}
+ggplot()
+```
+
+```{r ex1-solution, include=!is_static}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+```
+
+```{r ex1-solution-static, include=FALSE, eval=FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+```
+
+
+### Graphing Template
+
+`ggplot(data = <DATA>) + <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))`
+  
+- The ggplot2 template takes the above form.
+- The data (`<DATA>`) is passed as part of the ggplot function.
+- The type of graph is defined by the function which follows (`<GEOM_FUNCTION>`). 
+    - We have seen previously the `geom_point` function which creates a scatterplot.
+    - There are different functions which create other type of graphs such as a bar chart `geom_bar`. 
+- The `<MAPPINGS>` component defines which variables are plotted and can control other parts of the graph like the colour, size, etc...
+
+
+
+### Scatterplots with Colour  
+
+- You can also produce scatterplots that are coloured.
+- In the scatterplot below we have now coloured the data points using the `drv` variable. This means that data points will be coloured based on whether the car is a front-wheel drive, rear-wheel drive or four-wheel drive.
+
+```{r colourScatter, exercise= TRUE, exercise.eval= FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = cty, colour = drv))
+```
+
+#### Exercise 2 
+
+**Colour the scatterplot created in Exercise 1 using the `class` variable.**
+
+```{r, include=is_static, results='asis'}
+cat("[Exercise 2 Solution]  ")
+```
+
+```{r ex2, exercise=TRUE, exercise.eval= FALSE, include=!is_static}
+ggplot()
+```
+
+```{r ex2-solution, include=!is_static}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, colour = class))
+```
+
+```{r ex2-solution-static, include=FALSE, eval=FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, colour = class))
+```
+
+
+#### Note on colour
+
+- To colour all points in a plot the same colour, the argument must be outside the `aes` function.
+- Values inside the aes function are assumed to be variables.  
+
+#### Exercise 3 
+
+**Move the colour inside `aes` to see what happens.**
+
+```{r, include=is_static, results='asis'}
+cat("[Exercise 3 Solution]  ")
+```
+
+
+```{r colourScatter_note, exercise= TRUE, exercise.eval= FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = cty),  colour = "blue")
+```
+```{r colourScatter_note-solution, include=!is_static}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = cty,  colour = "blue"))
+```
+
+```{r colourScatter_note-solution-static, include=FALSE, eval=FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = cty,  colour = "blue"))
+```
+
+
+### Other Scatterplot Effects  
+
+- It is also possible to use variables to alter the shade and shape of scatterplots.
+- Below are some examples of this.
+
+```{r shade, message=FALSE, warning=FALSE, exercise= TRUE, exercise.eval= FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = cty, alpha = drv))
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = cty, shape = drv))
+```
+
+- These are examples of just some of the changes you can make to scatterplots. Exploring the [help file](https://ggplot2.tidyverse.org/reference/geom_point.html) for `geom_point` will help you find out more about the function.
+
+
+
+### Other Plots
+
+#### Different geom Types
+
+- `geom_point` = scatterplot
+
+- `geom_bar` = barplot
+
+- `geom_histogram` = histogram  
+
+- `geom_box` = boxplot
+
+
+- See RStudio's [cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) for more information on different graph types and many other helpful tips.
+
+
+
+## Barplots
+
+### Diamonds data
+
+- `Diamonds` is a dataset containing the prices and other attributes of almost 54,000 diamonds.
+- Consult the help file [here](https://ggplot2.tidyverse.org/reference/diamonds.html) for an explanation of the variables contained in the dataset.
+
+```{r diamonds, exercise= TRUE}
+diamonds
+```
+
+
+
+
+### Basic Barplot
+
+
+```{r basicBarplot, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = color))
+```
+
+#### Exercise 4
+
+**Create a barplot of the `cut` variable.**
+
+```{r ex3, exercise= TRUE, include=!is_static}
+ggplot()
+```
+
+```{r ex3-solution, include=!is_static}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut))
+```
+
+```{r ex3-solution-static, include=FALSE, eval=FALSE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut))
+```
+
+
+### Barplots with Colour
+
+- You can colour a barplot depending on the variable being plotted as shown below:
+
+```{r barplotColour, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = color, fill = color))
+```
+
+- Alternatively, you can colour the barplot using another variable:
+
+```{r barplotVarColour, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = color, fill = cut))
+```
+
+- Another interesting barplot iteration:
+
+```{r otherBarplot, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = color, fill = cut), position = "dodge")
+```
+
+## Histograms
+### Basic Histogram
+
+
+```{r basicHistogram, exercise = TRUE, exercise.eval = FALSE}
+ggplot(diamonds) +
+  geom_histogram(mapping = aes(price), binwidth = 250)
+```
+
+
+
+#### Exercise 5
+
+**Create a histogram of price but this time set the `binwidth` parameter to 1000. What effect does this have on the resulting plot?**
+
+```{r ex4, exercise= TRUE, include=!is_static}
+ggplot()
+```
+
+```{r ex4-solution, include=!is_static}
+ggplot(diamonds) +
+  geom_histogram(aes(price), binwidth = 1000)
+```
+
+```{r ex4-solution-static, include=FALSE, eval=FALSE}
+ggplot(diamonds) +
+  geom_histogram(aes(price), binwidth = 1000)
+```
+
+
+## Boxplots  {data-progressive=TRUE}
+
+- Boxplots are a very useful method of graphing data as they clearly show the distribution of data.
+- If you are unfamiliar with what a boxplot displays, a good explanation can be found [here](https://www.wellbeingatschool.org.nz/information-sheet/understanding-and-interpreting-box-plots).
+
+
+### Basic Boxplot
+
+```{r basicBoxplot, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = mpg) + 
+  geom_boxplot(mapping = aes(x = drv, y = cty))
+```
+
+### Boxplot with Colour
+
+```{r colourBoxplot, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = mpg) + 
+  geom_boxplot(mapping = aes(x = drv, y = cty, fill= drv))
+```
+
+- The legend to the right of the plot can be removed by using the `theme()` function.
+  - Also note how the `mapping` argument will work when set inside `ggplot`.
+  - The arguments are passed on to subsequent elements of the plot.
+
+```{r boxplotNoLegend, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = mpg, mapping = aes(x = drv, y = cty, fill= drv)) + 
+  geom_boxplot() + 
+  theme(legend.position="none")
+```
+
+
+## Styling  {data-progressive=TRUE}
+
+### Coordinates {data-allow-skip=TRUE}
+
+
+#### Axis Range {data-allow-skip=TRUE}
+- It is possible to shorten or widen the range of both the x and y axis.  
+- Modify `xlim` and `ylims` to see how they effect the plot.
+
+```{r coord_simple, exercise = TRUE, exercise.eval = FALSE, message=FALSE, warning=FALSE}  
+  ggplot(mpg) +
+  geom_point(aes(displ, hwy)) +
+  xlim(2, 4) + ylim(15, 40)
+
+```
+
+
+- It's possible to specify more control on the axis using `scale_x_continuous` and `scale_y_continuous`.
+    - The `limits` argument has the same effect as `xlim` and `ylim`.  
+    - The `breaks` argument allows you to choose where to display numbers on the axes. 
+- Look at the solution to see another example of choosing where to display values.
+
+```{r coord_advanced, exercise = TRUE, exercise.eval = FALSE, message=FALSE, warning=FALSE}  
+  ggplot(mpg) +
+  geom_point(aes(displ, hwy)) +
+  scale_x_continuous(limits = c(2, 4)) +
+  scale_y_continuous(breaks = seq(15, 40, by = 5))
+
+```
+
+```{r coord_advanced-solution}  
+  ggplot(mpg) +
+  geom_point(aes(displ, hwy)) +
+  scale_x_continuous(breaks = seq(1.5, 7, by = 0.5)) +
+  scale_y_continuous(breaks = c(10, 15, 20, 25, 40))
+
+```
+
+#### Axis Flip {data-allow-skip=TRUE}
+
+- The `coord_flip()` function will flip the x and y axis automatically.  
+- This is useful to display boxplots vertically.
+
+#### Exercise 6 
+
+**Use `coord_flip()` to change the plot.**
+
+```{r coord, exercise = TRUE, exercise.eval = TRUE, include=!is_static}
+ggplot(data = mpg) + 
+  geom_boxplot(aes(x = class, y = hwy))
+
+```  
+
+```{r coord-solution, include=!is_static}
+ggplot(data = mpg) + 
+  geom_boxplot(aes(x = class, y = hwy)) +
+  coord_flip()
+```
+
+```{r coord-solution-static, include=FALSE, eval=FALSE}
+ggplot(data = mpg) + 
+  geom_boxplot(aes(x = class, y = hwy)) +
+  coord_flip()
+```
+
+
+
+### Labels {data-allow-skip=TRUE}
+
+- The `labs()` function is used to add title's and labels to the plot.  
+    - `title` adds a main title.
+    - `subtitle` adds additional detail in a smaller font beneath the title.
+    - `caption` adds text at the bottom right of the plot, often used to describe the source of the data.
+
+#### Exercise 7
+
+**add a subtitle and caption to the plot below.**
+
+```{r labels_title, exercise = TRUE, exercise.eval = TRUE, exercise.lines=4, include=!is_static}
+ggplot(mpg) +
+  geom_point(aes(displ, hwy, color = class)) +
+  labs(title = "Fuel efficiency generally decreases with engine size")
+
+```
+
+```{r labels_title-solution, include=!is_static}
+ggplot(mpg) +
+  geom_point(aes(displ, hwy, color = class)) +
+  labs(title = "Fuel efficiency generally decreases with engine size",
+       subtitle = "Two seaters (sports cars) are an exception because of their light weight",
+       caption = "Data from fueleconomy.gov")
+
+```
+
+```{r labels_title-solution-static, include=FALSE, eval=FALSE}
+ggplot(mpg) +
+  geom_point(aes(displ, hwy, color = class)) +
+  labs(title = "Fuel efficiency generally decreases with engine size",
+       subtitle = "Two seaters (sports cars) are an exception because of their light weight",
+       caption = "Data from fueleconomy.gov")
+```
+
+- You can also use `labs()` to replace the axis and legend titles. 
+- It’s usually a good idea to replace short variable names with more detailed descriptions, and to include the units.
+
+```{r labels3, exercise = TRUE, exercise.eval = FALSE}
+ggplot(mpg) +
+  geom_point(aes(displ, hwy, colour = class)) +
+  labs(x = "Engine displacement (L)",
+       y = "Highway fuel economy (mpg)",
+       colour = "Car type")
+
+```  
+  
+  
+  
+
+### Themes
+
+- Themes change the default colours.
+
+- `theme_bw()`, `theme_light()`, `theme_classic()`, `theme_gray()` are just some examples.  
+- Change the code to try some of the different themes.  
+
+```{r themes1, exercise = TRUE, exercise.eval = FALSE}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  theme_bw()
+```
+
+
+
+#### Custom Theme
+
+- You can create your own custom theme.
+- After saving your team as a variable it can be used with any plot.
+    - See `my_edge_theme` as an example of this.
+
+```{r Edge_theme, exercise = TRUE, exercise.eval = FALSE, warning=FALSE, exercise.lines=27}
+ # Edge colours from style guide
+edge_pure_green <- rgb(0,160,100, maxColorValue = 255)
+edge_pure_green20 <- rgb(204,236,224, maxColorValue = 255)
+edge_deep_charcoal <- rgb(48,49,53, maxColorValue = 255)
+edge_deep_charcoal50 <- rgb(151,152,154, maxColorValue = 255)
+edge_deep_charcoal20 <- rgb(214,214,215, maxColorValue = 255)
+edge_lime <- rgb(145,190,35, maxColorValue = 255)
+edge_sea_blue <- rgb(15,120,160, maxColorValue = 255)
+
+
+my_edge_theme <- theme(panel.background = element_rect(fill = edge_deep_charcoal20),
+                       panel.border = element_rect(linetype = "solid", fill = NA),
+                       panel.grid = element_line(colour = edge_deep_charcoal), 
+                       plot.background = element_rect(fill = edge_deep_charcoal, colour = NA,size = 2),
+                       text = element_text(family = "Arial", size=10, colour=edge_pure_green), 
+                       title = element_text(family="Arial", size=15, colour=edge_pure_green),
+                       axis.text= element_text(family="Arial", colour=edge_pure_green),
+                       legend.background = element_rect(fill = "transparent",colour = NA), 
+                       legend.key = element_rect(colour = edge_deep_charcoal50, fill = edge_pure_green))
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(color = edge_pure_green) +
+  labs(title = "Engine size vs Highway fuel economy",
+       x = "Engine displacement (L)",
+       y = "Highway fuel economy (mpg)",
+       colour = "Car type") + 
+  my_edge_theme
+
+```
+
+
+
+### Facets
+
+- One way to add additional variables is with aesthetics (colour, shape, etc...). Another way, particularly useful for categorical variables, is to split your plot into facets, subplots that each display one subset of the data.
+
+- To facet your plot by a single variable, use `facet_wrap()`. The first argument of `facet_wrap()` should be a formula, which you create with `~` followed by a variable name (here “formula” is the name of a data structure in R, not a synonym for “equation”). The variable that you pass to `facet_wrap()` should be discrete.
+
+
+```{r facets1, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_wrap(~ class, nrow = 2)
+
+```
+
+
+- To facet your plot on the combination of two variables, add `facet_grid()` to your plot call. The first argument of `facet_grid()` is also a formula. This time the formula should contain two variable names separated by a `~`.  
+
+```{r facets2, exercise = TRUE, exercise.eval = FALSE}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(drv ~ cyl)
+
+```
+
+
+<!-- - What plots does the following code make? What does . do? -->
+
+<!-- ```{r ex-facets, exercise = TRUE, exercise.eval = FALSE} -->
+<!-- ggplot(data = mpg) + -->
+<!--   geom_point(mapping = aes(x = displ, y = hwy)) + -->
+<!--   facet_grid(drv ~ .) -->
+
+<!-- ggplot(data = mpg) + -->
+<!--   geom_point(mapping = aes(x = displ, y = hwy)) + -->
+<!--   facet_grid(. ~ cyl) -->
+<!-- ``` -->
+<!-- ```{r ex-facets-solution} -->
+<!-- # The . refers to the dataset being used -->
+<!-- # -->
+<!-- # .$displ will access the displ variable -->
+<!-- ``` -->
+
+
+
+## Advanced  {data-progressive=TRUE}
+
+### Maps {data-allow-skip=TRUE}
+
+- This section uses the `maps` and `scales` packages.
+- `maps`
+   - This packages contains maps which can be used to visualise geographical data.
+- `scales`
+  - This package contains functions to improve axis labels and legends.
+
+
+
+```{r prepare-maps, warning=FALSE, message=FALSE}
+library(maps)
+library(scales)
+
+tidy_tuesday5 <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-04-30/week5_acs2015_county_data.csv")
+
+ # County map data
+counties <- map_data("county")
+
+ # Combined county data
+all_county <- tidy_tuesday5 %>% 
+  mutate(County = tolower(County), State = tolower(State)) %>%
+  inner_join(counties, by = c("County" = "subregion", "State" = "region"))
+```
+
+
+- The code below loads some United States economic data, as well as map data for the US.  
+- We will cover some of the commands used below in later tutorials.  
+
+```{r maps_prep, exercise=TRUE, exercise.setup = "prepare-maps", warning=FALSE, message=FALSE, error=FALSE, exercise.lines=12}
+ # Load data
+tidy_tuesday5 <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-04-30/week5_acs2015_county_data.csv")
+
+ # County map data
+counties <- map_data("county")  # data of coordinates of all counties in the US
+
+ # Combined county data
+all_county <- tidy_tuesday5 %>% 
+  mutate(County = tolower(County), State = tolower(State)) %>%  # change county and state name to lowercase
+  inner_join(counties, by = c("County" = "subregion", "State" = "region"))
+
+all_county  # explore data
+```
+
+
+- We can create a heatmap coloured according to *Income*.
+- Try and change *Income* to a different variable such as *Unemployment* or *MeanCommute*.  
+    - You may need to change the `labels` argument inside the `scales_fill_distiller`.
+    - See the solution for an example.
+
+```{r maps, exercise=TRUE, exercise.setup = "prepare-maps", warning=FALSE, message=FALSE, error=FALSE, exercise.lines=7}
+ggplot(data = all_county, mapping = aes(x = long, y = lat, group = group)) + 
+  coord_fixed(1.3) + # ensure the right aspect of the map
+  geom_polygon(aes_string(fill = "Income"), color = "grey", size = 0.05) + # use grey lines to outline the counties
+  scale_fill_distiller(palette = "Spectral", labels = dollar) +            # use spectral colour scheme and add dollar sign to variable
+  theme_void() +  # this theme removes all background lines
+  theme(plot.margin = unit(c(0,0,0,0), "cm"))  # allows the map to take up the full space of the plot
+
+```
+```{r maps-solution}
+ggplot(data = all_county, mapping = aes(x = long, y = lat, group = group)) + 
+  coord_fixed(1.3) + 
+  geom_polygon(aes_string(fill = "MeanCommute"), color = "grey", size = 0.05) +
+  scale_fill_distiller(palette = "Spectral", labels = number_format(suffix = "mins")) +
+  theme_void() +
+  theme(plot.margin = unit(c(0,0,0,0), "cm"))
+
+```
+
+
+### Animate `gganimate` {data-allow-skip=TRUE}
+
+- We will now look at the `gganimtte` package.
+- This can be used to create animations of data.
+
+```{r prepare-ani, warning=FALSE, error=FALSE, message=FALSE}
+library(gganimate)
+library(scales)
+
+ # Load data
+voter_data <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-10-09/voter_turnout.csv")
+
+ # Remove unwanted entries
+state_data <- voter_data %>% 
+  filter(!state %in% c("United States", "United States (Excl. Louisiana)"))  # Remove overall country voter data
+  # mutate(year = as.Date(as.character(year), format="%Y"))  # must be better way to do this
+```
+
+
+- The data used here is [US Voter Data](https://github.com/rfordatascience/tidytuesday/tree/master/data/2018/2018-10-09), click on the link to learn more about the data.
+
+```{r animate_prep, exercise=TRUE, exercise.setup = "prepare-ani", exercise.lines=8 , exercise.timelimit=60, warning=FALSE, error=FALSE, message=FALSE}
+ # Load data
+voter_data <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-10-09/voter_turnout.csv")
+
+ # Remove overall country voter data
+state_data <- voter_data %>% 
+  filter(!state %in% c("United States", "United States (Excl. Louisiana)"))
+
+state_data 
+```
+
+- The plot begins as a standard ggplot.
+
+```{r animate2, exercise=TRUE, exercise.setup = "prepare-ani", exercise.lines=8 , exercise.timelimit=60, warning=FALSE, error=FALSE, message=FALSE}
+ # Create base plot for animation
+ggplot(state_data, aes(votes, eligible_voters, colour = state)) +
+  geom_point(show.legend = FALSE) + theme_light() +
+  scale_y_continuous(labels = comma_format()) +  # comma_format from scales package, neat axis labels
+  scale_x_continuous(labels = comma_format()) +
+  labs(title = 'Eligible voters vs Number of votes',
+       y = 'Eligible voters', x = 'Votes')
+```
+
+
+#### Animation
+
+- We add to the ggplot to create the animation.
+- The `transtion_time` argument selects which variable to animate over.
+- Note `{round(frame-time)}` as part of the subtitle.
+    - This is specific to gganimate.
+    - The subtitle will change as the year changes.
+    
+- **This chunk of code may take up to 60 seconds to complete** 
+
+```{r animate, exercise=TRUE, exercise.setup = "prepare-ani", exercise.lines=13 , exercise.timelimit=60, warning=FALSE, error=FALSE, message=FALSE}
+votes_vs_eligible <- ggplot(state_data, aes(votes, eligible_voters, colour = state)) +
+  geom_point(show.legend = FALSE) + theme_light() +
+  scale_y_continuous(labels = comma_format()) +
+  scale_x_continuous(labels = comma_format()) +
+  labs(title = 'Eligible voters vs Number of votes', 
+       subtitle = 'Year: {round(frame_time)}',
+       y = 'Eligible voters', x = 'Votes') +
+  # extra lines needed for animation are below
+  transition_time(year) +
+  ease_aes('quartic-in-out')  # determines how points will move
+
+animate(votes_vs_eligible)
+```
+
+
+
+### Map Animation {data-allow-skip=TRUE}
+
+- We can combine the `maps` and `gganimate` packages.  
+
+```{r wind-turbines-prep , exercise.timelimit=60, warning=FALSE, error=FALSE, message=FALSE}
+library(gganimate)
+library(scales)
+library(maps)
+states = map_data("state") 
+
+
+turbine_data <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-06/us_wind.csv", na = c("n/a", "-9999", "missing"))
+
+turbine_data <- turbine_data %>% 
+  filter(!is.na(p_year))
+```
+
+- The final animation looks at [US Wind Turbine Data](https://github.com/rfordatascience/tidytuesday/tree/master/data/2018/2018-11-06)
+
+```{r wind-turbines-setup, exercise=TRUE, exercise.timelimit=60, exercise.lines=9, warning=FALSE, error=FALSE, message=FALSE}
+states = map_data("state") 
+
+turbine_data <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-06/us_wind.csv", na = c("n/a", "-9999", "missing"))
+
+turbine_data <- turbine_data %>% 
+  filter(!is.na(p_year))  # remove NAs
+
+turbine_data
+```
+
+
+- Notice below how the `ggplot` function is left blank
+    - The *states* data and *turbine* data are used separately inside the plotting functions  
+    
+- **This chunk of code may take up to 60 seconds to complete** 
+
+```{r wind-turbines-animation, exercise=TRUE, exercise.setup = "wind-turbines-prep", exercise.lines=16, exercise.timelimit=60, warning=FALSE, error=FALSE, message=FALSE}
+location_animation <- ggplot() + 
+      geom_polygon(data = states, 
+                   aes(x = long, y = lat, group = group), fill = NA, color = "black") +  # add outline of US and states
+      geom_point(data = turbine_data, 
+                 aes(x = xlong, y = ylat), color = "blue3", size = 0.7) +  # turbine location plot
+  coord_fixed(1.3) + 
+  xlim(range(states$long)) + 
+  ylim(range(states$lat)) + 
+  theme_void() +
+  labs(title = "Location of wind turbines in the USA",
+       subtitle = 'Year: {round(frame_time)}') +
+  transition_time(p_year) + 
+  shadow_mark(colour = 'blue')  # animations settings, shdow_mark sticks points onto the map
+
+animate(location_animation, nframes = length(unique(turbine_data$p_year)), fps = 1, width = 800, height = 800)  # create animation
+
+```
+
+
+
+
+
+
+
+
+
+
+```{r, include=is_static, results='asis'}
+cat("# Solutions")
+
+cat("\n### Exercise 1 Solution")
+```
+
+
+```{r ex1-solution-static, include=is_static, eval=is_static}
+```
+
+
+```{r, include=is_static, results='asis'}
+cat("[Back to Exercise 1][Exercise 1]  \n")
+
+cat("\n### Exercise 2 Solution")
+```
+
+```{r ex2-solution-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis'}
+cat("[Back to Exercise 2][Exercise 2]  \n")
+
+cat("\n### Exercise 3 Solution  ")
+```
+
+```{r colourScatter_note-solution-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis'}
+cat("[Back to Exercise 3][Exercise 3]  \n")
+
+cat("\n### Exercise 4 Solution  ")
+```
+
+```{r ex3-solution-static, echo =T, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis'}
+cat("[Back to Exercise 4][Exercise 4]  \n")
+
+cat("\n### Exercise 5 Solution  ")
+```
+
+```{r ex4-solution-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis'}
+cat("[Back to Exercise 5][Exercise 5]  \n")
+
+cat("\n### Exercise 6 Solution  ")
+```
+
+```{r coord-solution-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis'}
+cat("[Back to Exercise 6][Exercise 6]  \n")
+
+cat("\n### Exercise 7 Solution  ")
+```
+
+```{r labels_title-solution-static, include=is_static, eval=is_static}
+```
+
+```{r, include=is_static, results='asis'}
+cat("[Back to Exercise 7][Exercise 7]  \n")
+```
