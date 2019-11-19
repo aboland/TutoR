@@ -1,5 +1,5 @@
-Tutorial 2: Data Visualisation
-================
+
+# Tutorial 2: Data Visualisation
 
 ## Introduction
 
@@ -7,10 +7,8 @@ Tutorial 2: Data Visualisation
     to produce graphs such as scatterplots, bar charts, histograms and
     boxplots. The use of graphics can help with the interpretation of
     large datasets and enhance reports.
-
   - We will use the ggplot2 package, which is a member of the tidyverse
     package, to produce plots of our data.
-
   - This tutorial will introduce many techniques. For additional
     information and examples on how to use `ggplot2` to plot data, read
     the [data
@@ -22,18 +20,12 @@ Tutorial 2: Data Visualisation
 
   - In order to run this interactive tutorial, you had to install a
     number of packages.
-
   - There are thousands of packages available for R, some more useful
     than others.
-
   - Packages can be installed using the `install.packages` command.
-    
       - `install.packages("tidyverse")`
-
   - To then use the package you need to load it by typing the following:
-    
       - `library(tidyverse)`
-
   - **Note:** you only need to install a package once, however, you need
     to load it every time you start a new session and want to use that
     package.
@@ -56,16 +48,6 @@ Tutorial 2: Data Visualisation
   - Before we start to graph this dataset it is important to take a look
     at its contents.
 
-  - The box below is an active code environment.
-    
-      - We will use these throughout this tutorial.
-
-  - Click the **run code** button at the top right of the code box to
-    execute the code.
-
-  - This runs the code in R in the background and displays the results
-    here.
-
 <!-- end list -->
 
 ``` r
@@ -87,6 +69,8 @@ mpg
     ## 10 audi         a4 q…   2    2008     4 manu… 4        20    28 p     comp…
     ## # … with 224 more rows
 
+<br><br>
+
 ## Scatterplots
 
   - We will start by producing a basic scatterplot of the `displ`
@@ -104,9 +88,12 @@ ggplot(data = mpg) +
 
 #### Exercise 1
 
-Produce a scatterplot with `displ` on the x-axis and `hwy` (highway
-miles per gallon) on the y-axis. [Exercise 1
-Solution](#exercise-1-solution)
+**Produce a scatterplot with `displ` on the x-axis and `hwy` (highway
+miles per gallon) on the y-axis.**
+
+[Exercise 1 Solution](#exercise-1-solution)
+
+<br><br>
 
 ### Graphing Template
 
@@ -122,6 +109,8 @@ Solution](#exercise-1-solution)
         such as a bar chart `geom_bar`.
   - The `<MAPPINGS>` component defines which variables are plotted and
     can control other parts of the graph like the colour, size, etc…
+
+<br>
 
 ### Scatterplots with Colour
 
@@ -142,8 +131,12 @@ ggplot(data = mpg) +
 
 #### Exercise 2
 
-Colour the scatterplot created in Exercise 1 using the `class` variable.
+**Colour the scatterplot created in Exercise 1 using the `class`
+variable.**
+
 [Exercise 2 Solution](#exercise-2-solution)
+
+<br>
 
 #### Note on colour
 
@@ -151,10 +144,22 @@ Colour the scatterplot created in Exercise 1 using the `class` variable.
     outside the `aes` function.
   - Values inside the aes function are assumed to be variables.
 
+<br>
+
 #### Exercise 3
 
-Move the colour inside `aes` to see what happens. [Exercise 3
-Solution](#exercise-3-solution)
+**Move the colour inside `aes` to see what happens.**
+
+[Exercise 3 Solution](#exercise-3-solution)
+
+``` r
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = cty),  colour = "blue")
+```
+
+<img src="Tutorial_02_files/figure-gfm/colourScatter_note-1.png" style="display: block; margin: auto;" />
+
+<br><br>
 
 ### Other Scatterplot Effects
 
@@ -200,6 +205,8 @@ ggplot(data = mpg) +
     for more information on different graph types and many other helpful
     tips.
 
+<br><br>
+
 ## Barplots
 
 ### Diamonds data
@@ -242,8 +249,11 @@ ggplot(data = diamonds) +
 
 #### Exercise 4
 
-Create a barplot of the `cut` variable. [Exercise 4
-Solution](#exercise-4-solution)
+**Create a barplot of the `cut` variable.**
+
+[Exercise 4 Solution](#exercise-4-solution)
+
+<br><br>
 
 ### Barplots with Colour
 
@@ -281,6 +291,8 @@ ggplot(data = diamonds) +
 
 <img src="Tutorial_02_files/figure-gfm/otherBarplot-1.png" style="display: block; margin: auto;" />
 
+<br>
+
 ## Histograms
 
 ### Basic Histogram
@@ -294,9 +306,12 @@ ggplot(diamonds) +
 
 #### Exercise 5
 
-Create a histogram of price but this time set the `binwidth` parameter
-to 1000. What effect does this have on the resulting plot? [Exercise 5
-Solution](#exercise-5-solution)
+**Create a histogram of price but this time set the `binwidth` parameter
+to 1000. What effect does this have on the resulting plot?**
+
+[Exercise 5 Solution](#exercise-5-solution)
+
+<br><br>
 
 ## Boxplots
 
@@ -339,6 +354,8 @@ ggplot(data = mpg, mapping = aes(x = drv, y = cty, fill= drv)) +
 ```
 
 <img src="Tutorial_02_files/figure-gfm/boxplotNoLegend-1.png" style="display: block; margin: auto;" />
+
+<br><br>
 
 ## Styling
 
@@ -397,8 +414,11 @@ ggplot(data = mpg, mapping = aes(x = drv, y = cty, fill= drv)) +
 
 #### Exercise 6
 
-Use `coord_flip()` to change the plot. [Exercise 6
-Solution](#exercise-6-solution)
+**Use `coord_flip()` to change the plot.**
+
+[Exercise 6 Solution](#exercise-6-solution)
+
+<br>
 
 ### Labels
 
@@ -411,8 +431,11 @@ Solution](#exercise-6-solution)
 
 #### Exercise 7
 
-Add a subtitle and caption to the plot below. [Exercise 7
-Solution](#exercise-7-solution)
+**add a subtitle and caption to the plot below.**
+
+[Exercise 7 Solution](#exercise-7-solution)
+
+<br>
 
   - You can also use `labs()` to replace the axis and legend titles.
   - It’s usually a good idea to replace short variable names with more
@@ -429,6 +452,8 @@ ggplot(mpg) +
 ```
 
 <img src="Tutorial_02_files/figure-gfm/labels3-1.png" style="display: block; margin: auto;" />
+
+<br>
 
 ### Themes
 
@@ -488,6 +513,8 @@ ggplot(mpg, aes(displ, hwy)) +
 ```
 
 <img src="Tutorial_02_files/figure-gfm/Edge_theme-1.png" style="display: block; margin: auto;" />
+
+<br>
 
 ### Facets
 
@@ -555,6 +582,8 @@ ggplot(data = mpg) +
 
 <!-- ``` -->
 
+<br><br>
+
 ## Advanced
 
 ### Maps
@@ -566,24 +595,6 @@ ggplot(data = mpg) +
   - `scales`
       - This package contains functions to improve axis labels and
         legends.
-
-<!-- end list -->
-
-``` r
-library(maps)
-library(scales)
-
-tidy_tuesday5 <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-04-30/week5_acs2015_county_data.csv")
-
- # County map data
-counties <- map_data("county")
-
- # Combined county data
-all_county <- tidy_tuesday5 %>% 
-  mutate(County = tolower(County), State = tolower(State)) %>%
-  inner_join(counties, by = c("County" = "subregion", "State" = "region"))
-```
-
   - The code below loads some United States economic data, as well as
     map data for the US.  
   - We will cover some of the commands used below in later tutorials.
@@ -599,7 +610,7 @@ counties <- map_data("county")  # data of coordinates of all counties in the US
 
  # Combined county data
 all_county <- tidy_tuesday5 %>% 
-  mutate(County=tolower(County), State = tolower(State)) %>%  # change county and state name to lowercase
+  mutate(County = tolower(County), State = tolower(State)) %>%  # change county and state name to lowercase
   inner_join(counties, by = c("County" = "subregion", "State" = "region"))
 
 all_county  # explore data
@@ -662,23 +673,9 @@ ggplot(data = all_county, mapping = aes(x = long, y = lat, group = group)) +
 
 ### Animate `gganimate`
 
-  - We will now look at the `gganimtte` package.
+  - We will now look at the `gganimate` package.
+
   - This can be used to create animations of data.
-
-<!-- end list -->
-
-``` r
-library(gganimate)
-library(scales)
-
- # Load data
-voter_data <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-10-09/voter_turnout.csv")
-
- # Remove unwanted entries
-state_data <- voter_data %>% 
-  filter(!state %in% c("United States", "United States (Excl. Louisiana)"))  # Remove overall country voter data
-  # mutate(year = as.Date(as.character(year), format="%Y"))  # must be better way to do this
-```
 
   - The data used here is [US Voter
     Data](https://github.com/rfordatascience/tidytuesday/tree/master/data/2018/2018-10-09),
@@ -762,21 +759,6 @@ animate(votes_vs_eligible)
 
   - We can combine the `maps` and `gganimate` packages.
 
-<!-- end list -->
-
-``` r
-library(gganimate)
-library(scales)
-library(maps)
-states = map_data("state") 
-
-
-turbine_data <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-06/us_wind.csv", na = c("n/a", "-9999", "missing"))
-
-turbine_data <- turbine_data %>% 
-  filter(!is.na(p_year))
-```
-
   - The final animation looks at [US Wind Turbine
     Data](https://github.com/rfordatascience/tidytuesday/tree/master/data/2018/2018-11-06)
 
@@ -839,6 +821,8 @@ animate(location_animation, nframes = length(unique(turbine_data$p_year)), fps =
 
 <img src="Tutorial_02_files/figure-gfm/wind-turbines-animation-1.gif" style="display: block; margin: auto;" />
 
+<br><br>
+
 # Solutions
 
 ### Exercise 1 Solution
@@ -848,7 +832,7 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = hwy))
 ```
 
-<img src="Tutorial_02_files/figure-gfm/ex1-solution-1.png" style="display: block; margin: auto;" />
+<img src="Tutorial_02_files/figure-gfm/ex1-solution-static-1.png" style="display: block; margin: auto;" />
 
 [Back to Exercise 1](#exercise-1)
 
@@ -859,7 +843,7 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = hwy, colour = class))
 ```
 
-<img src="Tutorial_02_files/figure-gfm/ex2-solution-1.png" style="display: block; margin: auto;" />
+<img src="Tutorial_02_files/figure-gfm/ex2-solution-static-1.png" style="display: block; margin: auto;" />
 
 [Back to Exercise 2](#exercise-2)
 
@@ -870,7 +854,7 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = cty,  colour = "blue"))
 ```
 
-<img src="Tutorial_02_files/figure-gfm/colourScatter_note-solution-1.png" style="display: block; margin: auto;" />
+<img src="Tutorial_02_files/figure-gfm/colourScatter_note-solution-static-1.png" style="display: block; margin: auto;" />
 
 [Back to Exercise 3](#exercise-3)
 
@@ -881,7 +865,7 @@ ggplot(data = diamonds) +
   geom_bar(mapping = aes(x = cut))
 ```
 
-<img src="Tutorial_02_files/figure-gfm/ex3-solution-1.png" style="display: block; margin: auto;" />
+<img src="Tutorial_02_files/figure-gfm/ex3-solution-static-1.png" style="display: block; margin: auto;" />
 
 [Back to Exercise 4](#exercise-4)
 
@@ -892,7 +876,7 @@ ggplot(diamonds) +
   geom_histogram(aes(price), binwidth = 1000)
 ```
 
-<img src="Tutorial_02_files/figure-gfm/ex4-solution-1.png" style="display: block; margin: auto;" />
+<img src="Tutorial_02_files/figure-gfm/ex4-solution-static-1.png" style="display: block; margin: auto;" />
 
 [Back to Exercise 5](#exercise-5)
 
@@ -904,7 +888,7 @@ ggplot(data = mpg) +
   coord_flip()
 ```
 
-<img src="Tutorial_02_files/figure-gfm/coord-solution-1.png" style="display: block; margin: auto;" />
+<img src="Tutorial_02_files/figure-gfm/coord-solution-static-1.png" style="display: block; margin: auto;" />
 
 [Back to Exercise 6](#exercise-6)
 
@@ -918,6 +902,6 @@ ggplot(mpg) +
        caption = "Data from fueleconomy.gov")
 ```
 
-<img src="Tutorial_02_files/figure-gfm/labels_title-solution-1.png" style="display: block; margin: auto;" />
+<img src="Tutorial_02_files/figure-gfm/labels_title-solution-static-1.png" style="display: block; margin: auto;" />
 
 [Back to Exercise 7](#exercise-7)
