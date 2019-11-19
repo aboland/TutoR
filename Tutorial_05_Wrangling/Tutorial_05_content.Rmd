@@ -477,9 +477,11 @@ flights <- cbind(uniqueID, flights)
 - For example take the two tables `flights` and `airlines`. The primary key `carrrier` in the `airlines` table is a foreign key in the `flights` table. The left join function can be used to join the two tables as follows:
 
 ```{r left_join, exercise = TRUE, exercise.eval = FALSE}
-flightsLJ <- flights %>%
-              left_join(airlines, by = "carrier")
-flightsLJ
+flightsLJ <- 
+  flights %>%
+  left_join(airlines, by = "carrier")
+
+head(flightsLJ)
 ```
 
 - The flights table now has 21 columns with the `carrier` variable as the last column. The `carrier` column isn't visible in the R console as the dataset is too wide. To see all the variables use the `View()` function. 
@@ -495,7 +497,7 @@ flightsLJ
 flights2 <- select(flights, flight, origin, dest, tailnum)
 flights2 <- flights2 %>%
   left_join(planes, by = "tailnum")
-flights2
+head(flights2)
 ```
 
 
@@ -505,7 +507,7 @@ flights2
 
 flightsLJ2 <- flights %>% 
                 left_join(airports, c("origin" = "faa"))
-flightsLJ2
+head(flightsLJ2)
 ```
 
 
@@ -528,7 +530,7 @@ top5origins <- flights %>%
 flightsTop5 <- flights %>% 
   semi_join(top5origins)
 
-flightsTop5 
+head(flightsTop5) 
 ```
 
 **Exercise: Find the five most popular destinations and obtain the flight data for only the flights going to those five destinations.**
@@ -543,7 +545,7 @@ top5dest <- flights %>%
 flightsTop5dest <- flights %>% 
   semi_join(top5dest)
 
-flightsTop5dest
+head(flightsTop5dest)
 ```
 
 **Exercise: Use the anti-join function to find out if any airlines have no flights in the `flights` dataset.**
