@@ -1,13 +1,11 @@
 ---
 title: "Tutorial 2: Data Visualisation"
-output: github_document
+output: 
+  github_document:
+    toc: true
 params:
   static: TRUE
 ---
-
-```{r, echo=FALSE}
-is_static <- TRUE
-```
 
 ```{r child = 'Tutorial_02_content.Rmd'}
 ```

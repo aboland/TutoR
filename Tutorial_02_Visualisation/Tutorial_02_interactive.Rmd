@@ -16,7 +16,8 @@ install.packages(c("learnr", "tidyverse", "rmarkdown", "scales", "maps", "gganim
 ```
 
 ```{r, echo=FALSE}
-is_static <- FALSE
+# is_static <- FALSE
+# is_static <- print(rmarkdown::all_output_formats(knitr::current_input())[1]) != "shiny_prerendered"
 ```
 
 ```{r child = 'Tutorial_02_content.Rmd'}
