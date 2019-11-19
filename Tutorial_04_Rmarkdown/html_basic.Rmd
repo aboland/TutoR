@@ -1,0 +1,141 @@
+---
+title: "R Markdown Example"
+author: "Aidan Boland"
+date: "3/25/2019"
+always_allow_html: yes
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  # Changing to false would automatically hide code chunks
+
+library(tidyverse)
+library(scales)
+library(lubridate)  # to deal with dates
+```
+
+
+```{r load data, echo=FALSE, cache=TRUE, include=FALSE}
+# cache = TRUE will cache this code chunk, 
+# which means that the code is run once and the results are stored.
+# This code will only be run again if the code is changed.
+
+
+ # Horror movie data
+movie <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-10-23/movie_profit.csv")
+```
+
+
+## Movie Dataset {.tabset}
+
+### Introduction
+
+The dataset on movies appeared as part of the [tidy tuesday series](https://github.com/rfordatascience/tidytuesday/tree/master/data/2018/2018-10-23). The data originally came from [the-numbers.com](https://www.the-numbers.com/).  
+
+There are `r nrow(movie)` movies in the dataset, for `r length(unique(movie$genre))` different genres.  
+
+#### Document
+
+This html document will show a brief exploration of the dataset. The accompanying R Markdown document shows various examples of Markdown code and it's uses.
+
+### Exploration
+
+The `str` function shows the structure of the dataset.  
+
+```{r}
+summary(movie)
+```
+
+<br>  
+
+#### Dates
+
+The results from using `str` shows that the date is currently stored as a character, which means that if we tried to sort by date it would not work as you would want/expect.  
+Using `min` the minimum is: **`r min(movie$release_date)`** and using `max` the maximum is **`r max(movie$release_date)`**.  
+
+
+This behaviour can be fixed by changing the date column from a character type to a date type. It is also possible to extract the year as a new column.  
+
+```{r tidy data}
+ # Tidy dates and calculate return
+movie_tidy <- movie %>% 
+  select(-X1) %>%  # remove row names
+  mutate(release_date = lubridate::mdy(release_date),  # tidy date
+         release_year = lubridate::year(release_date),  # tidy year
+         return = worldwide_gross - production_budget)  # calculate return
+```
+
+Now we the minimum is: **`r min(movie_tidy $release_date)`** and the maximum is **`r max(movie_tidy $release_date)`**.  
+
+<br>  
+
+#### Summary Stats
+
+We will explore the data by creating summary statistics for each year and each genre.  
+
+The `group_by` function will group together the movies based on whichever columns you select. In the case below, release_year and genre.  
+The `summarise` function will then calculate various statistics for the grouped variables.  
+  
+```{r summarise data}
+  # Aggregate and summarise data by year and genre
+movie_tidy %>% 
+  group_by(release_year, genre) %>%
+  summarise(avg_return = mean(return), 
+            median_return = median(return),
+            avg_production = mean(production_budget), 
+            median_production = median(production_budget),
+            avg_gross = mean(worldwide_gross), 
+            median_gross = median(worldwide_gross)) -> movie_agg
+
+```
+
+
+The `movie_agg` dataset contains the summary statistics.  
+
+```{r display tidy data}
+movie_agg
+```
+ 
+
+### Visualisation
+
+
+```{r plot data 1, fig.align='center'}
+
+average_return_plot <- ggplot(movie_agg, aes(x = release_year, y = avg_return, colour=genre)) +
+  geom_line() +
+  scale_y_continuous(labels = dollar_format(scale=0.000001, suffix="M")) +  # Change y-axis labels to dollars
+  labs(title = "Average Return", x = "Year", y = NULL, colour = NULL)  # remove legend title
+
+average_return_plot
+```
+
+
+```{r plot data 2, fig.align='center'}
+  # ggplot of median production cost versus year by genre
+yearly_cost_plot <- ggplot(movie_agg, aes(release_year, median_production, colour=genre)) +
+  geom_line() +
+  scale_y_continuous(labels = dollar_format(scale=0.000001, suffix="M")) +  # Change y-axis labels to dollars
+  labs(title = "Median Production Cost", x = "Year", y = NULL, colour = NULL)  # remove legend title
+
+yearly_cost_plot
+```
+
+
+<br>
+<br>
+<br>  
+
+#### Plotly (optional)
+
+```{r plotly example, message=FALSE}
+if(require(shiny) && require(plotly)){  # check if installed
+  # Create plotly graph
+  yearly_cost_plotly <- ggplotly(yearly_cost_plot) %>% 
+    layout(margin = list(l = 45))  # add extra space on left for axis labels
+  
+  shiny::div(yearly_cost_plotly, align = "center")  # need the div function to centre the graph on the webpage
+}
+```
