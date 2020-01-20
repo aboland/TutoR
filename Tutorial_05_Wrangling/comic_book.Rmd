@@ -1,0 +1,97 @@
+---
+title: "Tidy Tuesday"
+author: "Aidan Boland"
+date: "5/4/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+comic_book <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-05-29/week9_comic_characters.csv", stringsAsFactors = FALSE)
+```
+
+## Comic Book Data
+
+This data originally appeared in [this article](53eig.ht/2xlfokk)
+
+It appeared as one of the tidy Tuesday datasets on the [29th of May 2018](https://twitter.com/R4DScommunity/status/1001454914411925504).
+
+
+```{r explore data, include=FALSE}
+head(comic_book)
+```
+
+
+
+
+## Tidy data
+
+
+```{r example_tidy, echo=FALSE, warning=FALSE}
+my_comic_data <- comic_book %>%
+  mutate(date = parse_date(date)) %>%
+  separate(first_appearance, into=c("first_app_year", "first_app_month")) %>%  # already done in the date
+  select(publisher, name, id, align, appearances, date, first_app_year, first_app_month)
+```
+
+
+
+```{r example_plot}
+
+my_comic_data %>% 
+  ggplot(aes(x = publisher, fill = publisher)) +
+  geom_bar()
+
+
+my_comic_data %>% 
+  ggplot(aes(x = align, fill = publisher)) +
+  geom_bar(position = "dodge")
+
+my_comic_data %>% 
+  ggplot(aes(x = align, fill = publisher)) +
+  geom_bar(stat="count", position = "dodge")
+```
+
+
+
+```{r example_tidy2, echo=FALSE, warning=FALSE}
+# my_comic_data2 <- my_comic_data %>%
+#   spread(key = publisher, value = appearances)
+
+
+my_comic_data2 <- my_comic_data %>%
+  group_by(publisher) %>%
+  summarise(median_appearances = median(appearances, na.rm = T))
+
+
+my_comic_data2 %>% 
+  ggplot(aes(y = median_appearances, x = publisher, fill = publisher)) +
+  geom_bar(stat="identity", position = "dodge")
+
+```
+
+
+```{r appearances}
+
+my_comic_data %>% 
+  ggplot(aes(x = appearances, fill = publisher)) +
+  geom_histogram(position = "dodge")
+
+my_comic_data %>% 
+  ggplot(aes(x = appearances)) +
+  geom_histogram() +
+  facet_wrap(~ publisher)
+
+my_comic_data %>% 
+  ggplot(aes(x = appearances, fill = publisher)) +
+  geom_histogram(binwidth = 50, position = "dodge")
+
+my_comic_data %>% filter(appearances>100) %>% 
+  ggplot(aes(x = appearances, fill = publisher)) +
+  geom_histogram(position = "dodge")
+
+```
+
+
+
