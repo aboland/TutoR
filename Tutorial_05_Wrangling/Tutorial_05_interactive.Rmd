@@ -1,0 +1,15 @@
+---
+title: "Tutorial 5: Data Wrangling"
+output: learnr::tutorial
+runtime: shiny_prerendered
+params:
+  static: FALSE
+---
+
+```{r, echo=FALSE}
+# is_static <- FALSE
+# is_static <- print(rmarkdown::all_output_formats(knitr::current_input())[1]) != "shiny_prerendered"
+```
+
+```{r child = 'Tutorial_05_content.Rmd'}
+```

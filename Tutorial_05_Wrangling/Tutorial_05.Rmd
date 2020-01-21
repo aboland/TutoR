@@ -1,0 +1,16 @@
+---
+title: "Tutorial 5: Data Wrangling"
+output: 
+  github_document:
+    pandoc_args: [
+      "--output=README.md"
+    ]
+    toc: true
+params:
+  static: TRUE
+---
+
+# Tutorial 5: Data Wrangling
+
+```{r child = 'Tutorial_05_content.Rmd'}
+```
