@@ -15,7 +15,7 @@ The idea for this course is to give an introduction to R. No prior coding experi
 
 ### Tutorial 1 - Introduction to R
 
-- [Intro](/Tutorial_01_intro/Tutorial_01.md)
+- [Intro](/Tutorial_01_Intro/Tutorial_01.md)
 
 
 ### Tutorial 2 - Visualisation (ggplot2)

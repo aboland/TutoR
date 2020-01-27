@@ -1,6 +1,8 @@
 TutoR
 ================
 
+<!-- This file is created using README.Rmd edit that file! -->
+
 Contains all of the resources for [Edge by
 Ascential’s](https://www.ascentialedge.com/) lunch and learn R
 program.
@@ -20,7 +22,7 @@ and create reproducible
 
 ### Tutorial 1 - Introduction to R
 
-  - [Intro](/Tutorial_01_intro/Tutorial_01.md)
+  - [Intro](/Tutorial_01_Intro/Tutorial_01.md)
 
 ### Tutorial 2 - Visualisation (ggplot2)
 
