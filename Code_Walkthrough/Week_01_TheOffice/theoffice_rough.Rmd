@@ -1,0 +1,369 @@
+---
+title: "Code Walkthrough Week 1 - Full"
+author: "Aidan Boland"
+date: "3/28/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+
+library(dplyr)
+```
+
+<!-- 16:18 -->
+```{r, echo = F}
+start1 <- as.POSIXct("2020-04-28 16:18:00")
+```
+
+## Data
+
+The data comes from a project known as Tidy Tuesday. We are looking at a data set from a few weeks ago, you can read more about it [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-03-17/readme.md).
+
+
+
+```{r read in data}
+office_ratings <- 
+  readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-17/office_ratings.csv')
+
+# office_ratings <- 
+#   read.csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-17/office_ratings.csv', stringsAsFactors = F)
+```
+
+Note that `readr::read_csv`, uses the `read_csv` from the `readr` library, but without loading in the library.
+
+### Base R
+
+```{r base R, eval=FALSE}
+office_ratings_baseR <-
+  read.csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-17/office_ratings.csv', stringsAsFactors = F)
+
+office_ratings_baseR$air_date <- as.Date(office_ratings_baseR$air_date[1:4])
+```
+
+```{r view data}
+office_ratings
+```
+
+### IMDB Rating
+
+Will begin by looking at ratings, and best way to explore is by plotting the data.
+
+```{r plots}
+library(ggplot2)
+office_ratings %>%
+  ggplot(aes(imdb_rating)) +
+  geom_histogram()  # or stat_bin
+
+# Split by season
+office_ratings %>%
+  ggplot(aes(imdb_rating)) +
+  geom_histogram() +
+  facet_wrap(~season)
+
+# Tidy up/make nice
+office_ratings %>%
+  ggplot(aes(imdb_rating)) +
+  geom_histogram(bins = 10, colour = "cornflowerblue") +
+  facet_wrap(~season) +
+  labs(title = "IMDB Rating by Season", 
+         x = "Rating", y = "Count")
+
+# Try different bin size
+office_ratings %>%
+  ggplot(aes(imdb_rating)) +
+  geom_histogram(bins = 30, fill = "cornflowerblue") +
+  facet_wrap(~season) +
+  labs(title = "IMDB Rating by Season", 
+         x = "Rating", y = "Count")
+
+
+# Improve Labels
+my_prefix <- function(string, prefix = "Season ") paste0(prefix, string)
+office_ratings %>%
+  ggplot(aes(imdb_rating)) +
+  geom_histogram(bins = 30, fill = "cornflowerblue") +
+  facet_wrap(~season, labeller = as_labeller(my_prefix)) +
+  labs(title = "IMDB Rating by Season", 
+         x = "Rating", y = "Count") +
+  theme_light()
+```
+
+Next will look at boxplots
+```{r boxplots}
+# Simple boxplot
+office_ratings %>%
+  ggplot(aes(x = season, y = imdb_rating, group = season)) +
+  geom_boxplot()
+
+# Fix labels on x axis
+office_ratings %>%
+  ggplot(aes(x = season, y = imdb_rating, group = season)) +
+  geom_boxplot() +
+  labs(title = "Boxplots of IMDB Ratings per Season", 
+       y = "IMDB Rating", x = "Season") +
+  theme_light() +
+  scale_x_continuous(breaks = 1:max(office_ratings$season))
+
+# Try to add colour
+office_ratings %>%
+  ggplot(aes(x = season, y = imdb_rating, group = season, colour = season)) +
+  geom_boxplot() +
+  labs(title = "Boxplots of IMDB Ratings per Season", 
+       y = "IMDB Rating", x = "Season") +
+  theme_light() +
+  scale_x_continuous(breaks = 1:max(office_ratings$season))
+
+
+# Need to change season to factor
+# office_ratings$season <- as.factor(office_ratings$season)
+# office_ratings$season <- office_ratings %>% mutate(season = as.factor(season))
+office_ratings %>% 
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = season, y = imdb_rating, group = season, colour = season)) +
+  geom_boxplot() +
+  labs(title = "Boxplots of IMDB Ratings per Season", 
+       y = "IMDB Rating", x = "Season") +
+  theme_light()
+
+office_ratings %>% 
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = season, y = imdb_rating, group = season, colour = season)) +
+  geom_boxplot() +
+  labs(title = "Boxplots of IMDB Ratings per Season", 
+       y = "IMDB Rating", x = "Season") +
+  theme_light() + theme(legend.position = "none")
+```
+
+
+Seasons 3 and 4 look good, peaks again at 7. Last season bad apart from 3 outliers.
+
+After Season 7, Micheal (lead character - Steve Carell) leaves the show.
+ 
+```{r, echo = F}
+end1 <- as.POSIXct("2020-04-28 16:51:00")
+```
+
+
+```{r boxplot seasons micheal leave}
+# ?geom_vline
+
+office_ratings %>% 
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = season, y = imdb_rating, group = season, colour = season)) +
+  geom_boxplot() +
+  labs(title = "Boxplots of IMDB Ratings per Season", 
+       y = "IMDB Rating", x = "Season") +
+  theme_light() + theme(legend.position = "none") +
+  geom_vline(xintercept=7.5, linetype =  "dashed")
+
+
+office_ratings %>% 
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = season, y = imdb_rating, group = season, colour = season)) +
+  geom_boxplot() +
+  labs(title = "Boxplots of IMDB Ratings per Season", 
+       y = "IMDB Rating", x = "Season") +
+  theme_light() + theme(legend.position = "none") +
+  geom_vline(xintercept = 7.5, linetype =  "dashed") + 
+  annotate("text", x = 8, y = 5, label = "Micheal Scott Leaves")
+```
+
+```{r, echo = F}
+start2 <- as.POSIXct("2020-04-28 17:38:00")
+```
+
+## Summary Stats
+
+```{r season averages}
+office_ratings %>%
+  group_by(season) %>%
+  summarise(mean_rating = mean(imdb_rating),
+            highest_rating = max(imdb_rating), 
+            lowest_rating = min(imdb_rating),
+            variance = var(imdb_rating))
+```
+
+
+
+```{r season averages markdown tidy, results='asis'}
+library(xtable)
+office_ratings %>%
+  group_by(season) %>%
+  summarise(mean_rating = mean(imdb_rating),
+            highest_rating = max(imdb_rating), 
+            lowest_rating = min(imdb_rating),
+            variance = var(imdb_rating)) %>%
+  xtable() %>%
+  print(type = "html")
+
+office_ratings %>%
+  group_by(season) %>%
+  summarise(mean_rating = mean(imdb_rating),
+            highest_rating = max(imdb_rating), 
+            lowest_rating = min(imdb_rating),
+            variance = var(imdb_rating)) %>%
+  xtable() %>%
+  print(type = "html", include.rownames = F)
+
+office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  group_by(season) %>%
+  summarise(mean_rating = mean(imdb_rating),
+            highest_rating = max(imdb_rating), 
+            lowest_rating = min(imdb_rating),
+            variance = var(imdb_rating)) %>%
+  rename(Season = season,
+         Mean = mean_rating, 
+         Higest = highest_rating,
+         Lowest = lowest_rating,
+         Variance = variance) %>%
+  xtable(caption = "Summary Statistics of Rating by Season") %>%
+  print(type = "html", include.rownames = F)
+```
+
+
+# Total Votes
+
+```{r view data again}
+office_ratings
+```
+
+
+
+```{r total votes}
+office_ratings %>%
+  ggplot(aes(x = air_date, y = total_votes)) +
+  geom_line()
+
+office_ratings %>%
+  ggplot(aes(x = air_date, y = total_votes)) +
+  geom_line(colour = "purple") +
+  labs(title = "Number of IMDB Votes Over Time",
+       x = "Date", y = "Total Number of Votes")
+
+```
+
+
+
+```{r table, results='asis'}
+office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  group_by(season) %>%
+  summarise(mean_rating = mean(total_votes),
+            highest_rating = max(total_votes), 
+            lowest_rating = min(total_votes),
+            variance = var(total_votes)) %>%
+  rename(Season = season,
+         Mean = mean_rating, 
+         Higest = highest_rating,
+         Lowest = lowest_rating,
+         Variance = variance) %>%
+  xtable(caption = "Summary Statistics of Total Votes by Season") %>%
+  print(type = "html", include.rownames = F)
+```
+
+
+```{r table kable, results='asis'}
+library(knitr)
+office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  group_by(season) %>%
+  summarise(mean_rating = mean(total_votes),
+            highest_rating = max(total_votes), 
+            lowest_rating = min(total_votes),
+            variance = var(total_votes)) %>%
+  rename(Season = season,
+         Mean = mean_rating, 
+         Higest = highest_rating,
+         Lowest = lowest_rating,
+         Variance = variance) -> votes_summary_by_season
+
+kable(votes_summary_by_season)
+
+library(kableExtra)
+kable(votes_summary_by_season, caption = "Summary Statistics of Total Votes by Season") %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+
+# https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+```
+
+
+
+# Votes vs Rating
+
+
+```{r votes vs rating}
+
+office_ratings %>%
+  ggplot(aes(x = imdb_rating, y = total_votes)) +
+  geom_point()
+
+office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = imdb_rating, y = total_votes, colour = season)) +
+  geom_point()
+
+
+office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = imdb_rating, y = total_votes, colour = season)) +
+  geom_point() + 
+  labs(title = "Votes vs Rating", x = "Rating", y = "Total Number of Votes", colour = "Season")
+```
+
+
+```{r plotly}
+library(plotly)
+
+office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = imdb_rating, y = total_votes, colour = season)) +
+  geom_point() + 
+  labs(title = "Votes vs Rating", 
+       x = "Rating", 
+       y = "Total Number of Votes", 
+       colour = "Season") -> votes_vs_rating
+  
+  
+ggplotly(votes_vs_rating)
+
+
+
+
+votes_vs_rating2 <- 
+  office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = imdb_rating, y = total_votes, colour = season, 
+             text = paste0(title,
+                           "<br>IMDB: ", imdb_rating, 
+                           "<br>No. Votes: ", total_votes, 
+                           "<br>Season: ", season))) +
+  geom_point() + 
+  labs(title = "IMDB Votes vs Rating", x = "Rating", y = "Total Number of Votes", colour = "Season")
+
+ggplotly(votes_vs_rating2, tooltip = "text")
+
+
+votes_vs_rating3 <- 
+  office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = imdb_rating, y = total_votes, colour = season, 
+             text = paste0("S", season, ".E", episode, " ", title,
+                           "<br>IMDB: ", imdb_rating, 
+                           "<br>No. Votes: ", total_votes))) +
+  geom_point() + 
+  labs(title = "IMDB Votes vs Rating", x = "Rating", y = "Total Number of Votes", colour = "Season")
+
+ggplotly(votes_vs_rating3, tooltip = "text")
+```
+  
+
+```{r, echo = F}
+end2 <- as.POSIXct("2020-04-28 18:01:00")
+
+total_time <- (end1 - start1) + (end2 - start2) 
+```
+
