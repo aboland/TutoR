@@ -1,0 +1,193 @@
+---
+title: "Food Consumption"
+author: "Aidan Boland"
+date: "4/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+library(knitr)
+```
+
+## Easy load
+
+A pre-cleaned version of the data can be loaded using the following command.
+
+```{r cars}
+food_consumption <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-18/food_consumption.csv')
+```
+
+## Raw Data Load and Clean
+
+The following section shows how the code can be read from the following site [nu3.de/blogs/nutrition/food-carbon-footprint-index-2018](https://www.nu3.de/blogs/nutrition/food-carbon-footprint-index-2018)
+
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(rvest)
+
+# Credit to Kasia and minorly edited to create output file and test plot
+# Blog post at https://r-tastic.co.uk/post/from-messy-to-tidy/
+
+url <- "https://www.nu3.de/blogs/nutrition/food-carbon-footprint-index-2018"
+
+# scrape the website
+url_html <- read_html(url)
+
+# extract the HTML table
+whole_table <- url_html %>% 
+  html_nodes('table') %>%
+  html_table(fill = TRUE) %>%
+  .[[1]]
+
+head(whole_table) %>%
+  kable()
+```
+
+`glimpse` is an alternative way of looking at the data.
+
+```{r}
+glimpse(whole_table)
+```
+
+The intial table isn't as clean as you would like. The first column is simply an ID, and does not add anything, there are also 3 empty rows at the beginning and the column headers do not really make sense. A look at the website will show how the columns are denoted by symbols.  
+
+#### Remove Unnecessary Rows and Columns
+
+We will next remove the first column and first 3 rows.
+
+```{r}
+table_content <- whole_table %>%
+  select(-X1) %>% # remove redundant column
+  filter(!dplyr::row_number() %in% 1:3) # remove redundant rows
+
+head(table_content) %>%
+  kable()
+```
+
+
+### Column Headers
+
+This table is a bit better but we still do not have column headers. We can get this information from the html of the page. We need to compare `raw_headers` with the headers on the webpage.
+
+```{r}
+raw_headers <- url_html %>%
+  html_nodes(".thead-icon") %>%
+  html_attr('title')
+```
+
+
+Looking at the webpage, each type of meat has the two metrics side by side. We need to extract the headers to match our table.
+
+```{r}
+tidy_bottom_header <- raw_headers[28:length(raw_headers)]
+tidy_bottom_header[1:10]
+
+
+raw_middle_header <- raw_headers[17:27]
+raw_middle_header
+```
+
+We can add the middle headers together in the correct order.
+
+```{r}
+tidy_headers <- c(
+  rep(raw_middle_header[1:7], each = 2),
+  "animal_total",
+  rep(raw_middle_header[8:length(raw_middle_header)], each = 2),
+  "non_animal_total",
+  "country_total")
+
+tidy_headers
+```
+
+
+We finally paste (concatenate) the headers and set them as the column headers for our original data.
+
+```{r}
+combined_colnames <- paste(tidy_headers, tidy_bottom_header, sep = ';')
+colnames(table_content) <- c("Country", combined_colnames)
+
+# glimpse(table_content[, 1:10])
+table_content[, 1:10] %>%
+  head() %>%
+  kable()
+```
+
+## Data wrangling
+
+We can now focus on wrangling the data into a structure which will be easier for analysing.
+
+We first create a 'long' table, this will be a table with a row entry for every 'country'/'food category'/'metric combination', this is done using `tidyr::pivot_longer`.
+
+
+
+
+```{r}
+long_table <- table_content %>%
+  # make column names observations of Category variable
+  tidyr::pivot_longer(cols = -Country, names_to = "Category", values_to = "Values")
+
+# glimpse(long_table)
+long_table %>% head() %>%
+  kable()
+```
+
+We need to split the 'Category' column, this can be done using `tidyr::separate`.  
+e.g. the column header 'Pork;Kg CO2/person/year' can be split into 'Pork' and 'Kg CO2/person/year'
+<!-- We can separate the column header using `tidyr::separate` -->
+<!-- Creating this table will make it easier to separate the different metrics (`Supplied for Consumption (kg/person/year)` and `Kg CO2/person/year`). -->
+
+```{r}
+long_table <- long_table %>%
+  # separate food-related information from the metric
+  tidyr::separate(col = Category, into = c("Food Category", "Metric"), sep = ';')
+
+long_table %>% head() %>%
+  kable()
+```
+
+
+
+We can now split the two metrics.
+
+```{r}
+tidy_table <- long_table %>%
+  tidyr::pivot_wider(names_from = Metric, values_from = Values) %>%
+  janitor::clean_names('snake')
+
+tidy_table %>% head() %>%
+  kable()
+```
+
+Finally we tidy up the column names by renaming them with shorter more managable names. We change the metric columns to numerical types, and we save a copy of the data as a `csv` file.
+
+```{r}
+final_table <- tidy_table %>%
+  rename(consumption = 3,
+         co2_emmission = 4) %>%
+  filter(!stringr::str_detect(food_category, "total"))
+
+clean_table <- final_table %>% 
+  mutate_at(vars(consumption, co2_emmission), parse_number)
+
+clean_table %>% 
+  write_csv(here::here("Code_Walkthrough/Week_02_FoodConsumption/", "food_consumption.csv"))
+
+glimpse(clean_table)
+```
+
+#### Simple Plot 
+
+```{r}
+clean_table %>% 
+  ggplot(aes(x = fct_reorder(food_category, consumption), y = consumption, color = country)) +
+  geom_jitter() +
+  theme(legend.position = "none") +
+  coord_flip()
+```
+
+
+
