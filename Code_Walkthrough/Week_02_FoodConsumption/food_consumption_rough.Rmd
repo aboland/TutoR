@@ -1,193 +1,288 @@
 ---
-title: "Food Consumption"
+title: "Week2 Food Consumption"
 author: "Aidan Boland"
-date: "4/6/2020"
+date: "4/8/2020"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(dplyr)
+library(ggplot2)
 library(knitr)
 ```
 
-## Easy load
+## Data
 
-A pre-cleaned version of the data can be loaded using the following command.
-
-```{r cars}
+```{r load data}
 food_consumption <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-18/food_consumption.csv')
 ```
 
-## Raw Data Load and Clean
-
-The following section shows how the code can be read from the following site [nu3.de/blogs/nutrition/food-carbon-footprint-index-2018](https://www.nu3.de/blogs/nutrition/food-carbon-footprint-index-2018)
-
 
 ```{r}
-library(tidyverse)
-library(janitor)
-library(rvest)
-
-# Credit to Kasia and minorly edited to create output file and test plot
-# Blog post at https://r-tastic.co.uk/post/from-messy-to-tidy/
-
-url <- "https://www.nu3.de/blogs/nutrition/food-carbon-footprint-index-2018"
-
-# scrape the website
-url_html <- read_html(url)
-
-# extract the HTML table
-whole_table <- url_html %>% 
-  html_nodes('table') %>%
-  html_table(fill = TRUE) %>%
-  .[[1]]
-
-head(whole_table) %>%
-  kable()
-```
-
-`glimpse` is an alternative way of looking at the data.
-
-```{r}
-glimpse(whole_table)
-```
-
-The intial table isn't as clean as you would like. The first column is simply an ID, and does not add anything, there are also 3 empty rows at the beginning and the column headers do not really make sense. A look at the website will show how the columns are denoted by symbols.  
-
-#### Remove Unnecessary Rows and Columns
-
-We will next remove the first column and first 3 rows.
-
-```{r}
-table_content <- whole_table %>%
-  select(-X1) %>% # remove redundant column
-  filter(!dplyr::row_number() %in% 1:3) # remove redundant rows
-
-head(table_content) %>%
-  kable()
-```
-
-
-### Column Headers
-
-This table is a bit better but we still do not have column headers. We can get this information from the html of the page. We need to compare `raw_headers` with the headers on the webpage.
-
-```{r}
-raw_headers <- url_html %>%
-  html_nodes(".thead-icon") %>%
-  html_attr('title')
-```
-
-
-Looking at the webpage, each type of meat has the two metrics side by side. We need to extract the headers to match our table.
-
-```{r}
-tidy_bottom_header <- raw_headers[28:length(raw_headers)]
-tidy_bottom_header[1:10]
-
-
-raw_middle_header <- raw_headers[17:27]
-raw_middle_header
-```
-
-We can add the middle headers together in the correct order.
-
-```{r}
-tidy_headers <- c(
-  rep(raw_middle_header[1:7], each = 2),
-  "animal_total",
-  rep(raw_middle_header[8:length(raw_middle_header)], each = 2),
-  "non_animal_total",
-  "country_total")
-
-tidy_headers
-```
-
-
-We finally paste (concatenate) the headers and set them as the column headers for our original data.
-
-```{r}
-combined_colnames <- paste(tidy_headers, tidy_bottom_header, sep = ';')
-colnames(table_content) <- c("Country", combined_colnames)
-
-# glimpse(table_content[, 1:10])
-table_content[, 1:10] %>%
-  head() %>%
-  kable()
-```
-
-## Data wrangling
-
-We can now focus on wrangling the data into a structure which will be easier for analysing.
-
-We first create a 'long' table, this will be a table with a row entry for every 'country'/'food category'/'metric combination', this is done using `tidyr::pivot_longer`.
-
-
-
-
-```{r}
-long_table <- table_content %>%
-  # make column names observations of Category variable
-  tidyr::pivot_longer(cols = -Country, names_to = "Category", values_to = "Values")
-
-# glimpse(long_table)
-long_table %>% head() %>%
-  kable()
-```
-
-We need to split the 'Category' column, this can be done using `tidyr::separate`.  
-e.g. the column header 'Pork;Kg CO2/person/year' can be split into 'Pork' and 'Kg CO2/person/year'
-<!-- We can separate the column header using `tidyr::separate` -->
-<!-- Creating this table will make it easier to separate the different metrics (`Supplied for Consumption (kg/person/year)` and `Kg CO2/person/year`). -->
-
-```{r}
-long_table <- long_table %>%
-  # separate food-related information from the metric
-  tidyr::separate(col = Category, into = c("Food Category", "Metric"), sep = ';')
-
-long_table %>% head() %>%
+food_consumption[1:15,] %>%
   kable()
 ```
 
 
 
-We can now split the two metrics.
-
 ```{r}
-tidy_table <- long_table %>%
-  tidyr::pivot_wider(names_from = Metric, values_from = Values) %>%
-  janitor::clean_names('snake')
+food_consumption %>%
+  ggplot(aes(consumption, co2_emmission)) +
+  geom_point()
 
-tidy_table %>% head() %>%
-  kable()
+food_consumption %>%
+  ggplot(aes(consumption, co2_emmission, colour = country)) +
+  geom_point()
+
+food_consumption %>%
+  ggplot(aes(consumption, co2_emmission, colour = country)) +
+  geom_point() +
+  theme(legend.position = "none")
 ```
 
-Finally we tidy up the column names by renaming them with shorter more managable names. We change the metric columns to numerical types, and we save a copy of the data as a `csv` file.
 
 ```{r}
-final_table <- tidy_table %>%
-  rename(consumption = 3,
-         co2_emmission = 4) %>%
-  filter(!stringr::str_detect(food_category, "total"))
+food_consumption %>%
+  ggplot(aes(consumption, co2_emmission, colour = food_category)) +
+  geom_point()
 
-clean_table <- final_table %>% 
-  mutate_at(vars(consumption, co2_emmission), parse_number)
 
-clean_table %>% 
-  write_csv(here::here("Code_Walkthrough/Week_02_FoodConsumption/", "food_consumption.csv"))
+food_consumption %>%
+  ggplot(aes(consumption, co2_emmission, colour = food_category)) +
+  geom_point() +
+  labs(title = "Co2 emmission vs Consumption",
+       y = "kg CO2/person/year", x = "kg/person/year")
 
-glimpse(clean_table)
+food_consumption %>%
+  ggplot(aes(consumption, co2_emmission, colour = food_category)) +
+  geom_point() +
+  labs(title = expression('CO'[2]*" Emmission vs Consumption (per person per year)"),
+       y = expression('kg CO'[2]*"/person/year"), x = "kg/person/year",
+       colour = "Food Type")
 ```
 
-#### Simple Plot 
+#### From Website
+
+'The study analyses data from the Food and Agriculture Organization of the United Nations (FAO) to determine the quantity of produce supplied for consumption of 11 food types for all countries researched. Using CO2 emissions data, the carbon footprint per capita is then calculated for each food type.'
+
+Quantity was recoreded, and carbon footprint calculated using this.
+
+
+## Look at Consumption Only
 
 ```{r}
-clean_table %>% 
-  ggplot(aes(x = fct_reorder(food_category, consumption), y = consumption, color = country)) +
-  geom_jitter() +
+food_consumption %>%
+  ggplot(aes(x = food_category, y = consumption, colour = country)) +
+  geom_point() 
+
+# Remove legend
+food_consumption %>%
+  ggplot(aes(x = food_category, y = consumption, colour = country)) +
+  geom_point() +
+  theme(legend.position = "none")
+
+# Flip plot
+food_consumption %>%
+  ggplot(aes(x = food_category, y = consumption, colour = country)) +
+  geom_point() +
   theme(legend.position = "none") +
   coord_flip()
+
+# alternative
+food_consumption %>%
+  ggplot(aes(y = food_category, x = consumption, colour = country)) +
+  geom_point() +
+  theme(legend.position = "none")
+
+#jitter
+food_consumption %>%
+  ggplot(aes(y = food_category, x = consumption, colour = country)) +
+  geom_jitter() +
+  theme(legend.position = "none")
 ```
+
+
+
+```{r}
+food_consumption %>%
+  ggplot(aes(y = country, x = consumption, colour = food_category)) +
+  geom_jitter()
+```
+
+## Summary Stats - Consumption by country
+
+```{r}
+food_consumption %>%
+  group_by(country) %>%
+  summarise(average_consumption = mean(consumption)) %>%
+  arrange(desc(average_consumption)) %>%
+  head(15) %>% kable()
+```
+
+
+
+```{r}
+food_consumption %>%
+  group_by(country) %>%
+  summarise(average_consumption = mean(consumption)) %>%
+  arrange(average_consumption) %>%
+  head(15) %>% kable()
+```
+
+
+### Ireland
+
+```{r}
+food_consumption %>%
+  filter(country == "Ireland") %>%
+  arrange(desc(consumption)) %>%
+  kable()
+```
+
+
+### By Food Type
+
+```{r}
+food_consumption %>%
+  filter(food_category == "Pork") %>%
+  arrange(desc(consumption)) %>%
+  head(10) %>% kable()
+
+food_consumption %>%
+  filter(food_category == "Pork") %>%
+  arrange(consumption) %>%
+  head(10) %>% kable()
+```
+
+
+```{r}
+food_consumption %>%
+  filter(food_category == "Milk - inc. cheese") %>%
+  arrange(desc(consumption)) %>%
+  head(10) %>% kable()
+
+food_consumption %>%
+  filter(food_category == "Milk - inc. cheese") %>%
+  arrange(consumption) %>%
+  head(10) %>% kable()
+```
+
+
+# Map
+
+```{r}
+library(maps)
+
+world <- map_data("world")
+
+ggplot() + 
+      geom_polygon(data = world, 
+                   aes(x = long, y = lat, group = group), fill = NA, color = "black") 
+
+
+
+food_consumption %>%
+  filter(food_category == "Pork") %>%
+  inner_join(world, by = c("country" = "region")) -> food_consumption_map
+
+ggplot() + 
+      geom_polygon(data = world, 
+                   aes(x = long, y = lat, group = group), fill = NA, color = "black") + 
+      geom_polygon(data = food_consumption_map, 
+                 aes(x = long, y = lat, group = group, fill = consumption))
+
+
+library(scales)
+
+ggplot() + 
+      geom_polygon(data = world, 
+                   aes(x = long, y = lat, group = group), fill = NA, color = "black") + 
+      geom_polygon(data = food_consumption_map, 
+                 aes(x = long, y = lat, group = group, fill = consumption)) +
+  scale_fill_distiller(palette = "Spectral", labels = number_format(suffix = " kg/person/year"))
+
+ggplot() + 
+      geom_polygon(data = world, 
+                   aes(x = long, y = lat, group = group), fill = NA, color = "black") + 
+      geom_polygon(data = food_consumption_map, 
+                 aes(x = long, y = lat, group = group, fill = consumption)) +
+  scale_fill_distiller(palette = "Spectral", labels = number_format(suffix = " kg/person/year")) +
+  coord_fixed(1.3)
+
+
+ggplot() + 
+      geom_polygon(data = world, 
+                   aes(x = long, y = lat, group = group), fill = NA, color = "black") + 
+      geom_polygon(data = food_consumption_map, 
+                 aes(x = long, y = lat, group = group, fill = consumption)) +
+  scale_fill_distiller(palette = "Spectral", labels = number_format(suffix = " kg/person/year")) +
+  coord_fixed(1.3) +
+  theme_void() +
+    theme(plot.margin = unit(c(0,0.1,0,0), "cm")) +
+  labs(fill = "Pork Consumption")
+```
+
+```{r}
+# unique(food_consumption$food_category)
+
+food_type <- "Milk - inc. cheese"
+
+food_consumption %>%
+  filter(food_category == food_type) %>%
+  inner_join(world, by = c("country" = "region")) -> food_consumption_map
+
+
+ggplot() + 
+      geom_polygon(data = world, 
+                   aes(x = long, y = lat, group = group), fill = NA, color = "black") + 
+      geom_polygon(data = food_consumption_map, 
+                 aes(x = long, y = lat, group = group, fill = consumption)) +
+  scale_fill_distiller(palette = "Spectral", labels = number_format(suffix = " kg/person/year")) +
+  coord_fixed(1.3) +
+  theme_void() +
+    theme(plot.margin = unit(c(0,0.1,0,0), "cm")) +
+  labs(fill = paste0(food_type, " Consumption"))
+```
+
+
+
+# Total Footprint
+
+
+```{r}
+food_consumption %>%
+  group_by(country) %>%
+  summarise(total = sum(co2_emmission)) -> total_emissions
+
+total_emissions %>%
+  arrange(desc(total)) %>%
+  head(10) %>% kable
+```
+
+
+
+```{r}
+total_emissions %>%
+  inner_join(world, by = c("country" = "region")) -> total_consumption_map
+
+ggplot() + 
+      geom_polygon(data = world, 
+                   aes(x = long, y = lat, group = group), fill = NA, color = "black") + 
+      geom_polygon(data = total_consumption_map, 
+                 aes(x = long, y = lat, group = group, fill = total)) +
+  scale_fill_distiller(palette = "Spectral", labels = comma_format(suffix = " CO2 kg/person/year")) +
+  coord_fixed(1.3) +
+  theme_void() +
+    theme(plot.margin = unit(c(0,0.1,0,0), "cm")) +
+  labs(fill = "Total Emissions")
+```
+
+
+
+
+
+
 
 
 
