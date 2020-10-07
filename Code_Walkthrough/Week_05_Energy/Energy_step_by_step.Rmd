@@ -1,0 +1,255 @@
+---
+title: "Energy Consumption in Europe"
+author: "Aidan Boland"
+date: "`r format(Sys.Date(), '%d %b %Y')`"
+output: html_document
+---
+
+### Load Necessary Libraries
+
+```{r setup,warning=FALSE, message=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(scales)
+
+library(knitr)
+library(kableExtra)
+```
+
+
+### Reading in Data
+
+We first of all read in the data using `readr::read_csv`. 
+
+```{r read in, warning=FALSE, message=FALSE}
+# Read in data
+energy_types <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/energy_types.csv')
+```
+
+- The data shows values for power and type of power over 3 consecutive years.
+- Doing some research, the different types can be classed as renewable or non renewable. In our table only 'Conventional thermal' is non renewable.
+- To explore the data further we can class the type into renewable and non renewable, we can then calculate the percentage of non renewable for each year.
+
+```{r}
+energy_types %>%
+  head() %>% # Looks at the first 6 entries
+  kable() %>% # Only needed for markdown docs to make table look nice
+  kable_styling() # Extra parameters for making nice tables in markdown
+```
+
+## Caclulating Percentage of Renewable
+
+### Initial Data Tidy
+
+There is one country_name which is unpopulated. The country code reveals this to be the United Kingdom.
+```{r}
+energy_types %>%
+  filter(is.na(country_name)) %>%
+  head() %>% kable() %>% kable_styling()
+```
+
+We can use the `mutate` function to firstly change the NA values in the 'country_name' column to United Kingdom, and secondly add a new variable which determines which entries are renewable or non renewable.
+
+
+```{r}
+renewable_percentages <- 
+  energy_types %>%
+  mutate(
+    # First tidy up country names and add a new variable to determine renewable
+    country_name = case_when(
+      is.na(country_name) == TRUE ~ "United Kingdom",
+      TRUE ~ country_name
+    ),
+    # Then add an extra column with a flag for renewable
+    renewable = case_when(
+      type == "Conventional thermal" ~ "non_renewable",
+      type == "Nuclear" ~ "non_renewable",
+      T ~ "renewable"))
+
+renewable_percentages %>% head() %>% kable() %>% kable_styling()
+```
+
+### Caclulate Totals
+
+Using `group_by` and `summarise` we can calculate the yearly totals for renewable and non renewable for each country
+
+```{r, message=FALSE}
+renewable_percentages <- 
+  renewable_percentages %>%
+  # Group by country and energy type
+  group_by(country_name, renewable) %>%
+  # Now calculate the totals for each year
+  summarise(`2016` = sum(`2016`), `2017` = sum(`2017`), `2018` = sum(`2018`)) 
+
+
+renewable_percentages %>% head() %>% kable() %>% kable_styling()
+```
+
+### Pivoting the Data
+
+Our data has a separate column for each year and a single column for whether the data is renewable. To calculate percentages for each year we need to restructure the data. We do this in 2 steps.  
+
+First, we group the power totals into a single column and add a new column which denotes the year.
+
+```{r}
+
+renewable_percentages <- 
+  renewable_percentages %>%
+  # Transform the data so that totals are in a single column
+  pivot_longer(cols = c(`2016`, `2017`, `2018`),
+               names_to = "year",
+               values_to = "totals")
+
+renewable_percentages %>% head() %>% kable() %>% kable_styling()
+```
+
+
+Secondly, we split the power totals into 2 columns, one column for renewable and one columns for non renewable.
+
+```{r}
+renewable_percentages <- 
+  renewable_percentages %>%
+  # Transform data so that renewable and non renewable totals are in separate cols
+  pivot_wider(names_from = renewable, values_from = totals) 
+
+renewable_percentages %>% head() %>% kable() %>% kable_styling()
+```
+
+
+
+It is now straight forward to calculate the yearly percentage of renewable energy.
+
+```{r}
+renewable_percentages <- 
+  renewable_percentages %>%
+  # Calculate percentage using cols from above
+  mutate(green_percentage = renewable/(renewable + non_renewable))
+
+
+renewable_percentages %>% head() %>% kable() %>% kable_styling()
+```
+
+
+#### All of the above steps together
+
+```{r, message = F}
+renewable_percentages <- 
+  energy_types %>%
+  mutate(
+    country_name = case_when(
+      is.na(country_name) == TRUE ~ "United Kingdom",
+      TRUE ~ country_name
+    ),
+    renewable = case_when(
+      type == "Conventional thermal" ~ "non_renewable",
+      type == "Nuclear" ~ "non_renewable",
+      T ~ "renewable")) %>%
+  group_by(country_name, renewable) %>%
+  summarise(`2016` = sum(`2016`), `2017` = sum(`2017`), `2018` = sum(`2018`)) %>%
+  pivot_longer(cols = c(`2016`, `2017`, `2018`),
+               names_to = "year",
+               values_to = "totals") %>%
+  pivot_wider(names_from = renewable, values_from = totals) %>%
+  mutate(green_percentage = renewable/(renewable + non_renewable))
+```
+
+
+
+
+## Plots
+
+The data can be explored through graphs/plots.
+
+### Comparing years for select set of countries.
+
+The first plots takes a list of countries and shows the percentage over the 3 years.
+
+A small set of countries are used because the plot is messy and hard to read when all the countries are used.
+
+```{r, fig.align='center'}
+renewable_percentages %>%
+  # Filter the data by the list of countries given
+  filter(country_name %in% c("Ireland", "United Kingdom", "France", "Spain", "Portugal", "Germany", "Denmark", "Netherlands")) %>%
+  # Initial ggplot, note the reorder to sort by highest to lowest
+  ggplot(aes(x = reorder(country_name, green_percentage), y = green_percentage, fill = year)) +
+  # create a bar chart
+  geom_bar(stat = "identity", position='dodge') +
+  # add labels
+  labs(x = "Country", y = "Percentage Green Engery Produced") + 
+  # Use percentage formatting for the values (scales library)
+  scale_y_continuous(label = percent_format(accuracy = 1)) +
+  # Flip the plot so that the country names can be read easily
+  coord_flip()
+```
+
+
+### Comparing all countries for a single year
+
+The second plot uses a single year and compares all of the countries.
+
+```{r, fig.align='center'}
+renewable_percentages %>%
+  # Filter the data to use 2018
+  filter(year == 2018) %>%
+  # Initial ggplot
+  ggplot(aes(x = reorder(country_name, green_percentage), y = green_percentage)) +
+  # create bar chart, fill determines the colour of the bars
+  geom_bar(stat = "identity", position='dodge', fill = "cornflowerblue") +
+  # add labels
+  labs(x = "Country", y = "Percentage Green Engery Produced", 
+       title = "Percentage of green energy in 2018") + 
+  # Use percentage formatting for the values (scales library)
+  scale_y_continuous(label = percent_format(accuracy = 1)) +
+  # Flip the plot so that the country names can be read easily
+  coord_flip()
+```
+
+
+## Map Plot
+
+It is possible to use the `maps` package to plot the data on a map of Europe.  
+
+Note that some of the country names in the map data do not match the country names in our data. These need to be changed, and there's no easy way to figure out which countries match other than looking into both datasets.
+
+```{r, message = F, fig.align='center'}
+library(maps)
+
+world_map <- map_data("world")
+
+# Change countries names to match
+world_map <-
+  world_map %>%
+  mutate(
+    region = case_when(
+      region == "UK" ~ "United Kingdom",
+      region == "Czech Republic" ~ "Czechia",
+      TRUE ~ region
+    )
+  )
+
+
+renewable_percentages %>%
+  # Filter data to use only 2018
+  filter(year == 2018) %>%
+  # join the 2 datasets, linking by country name
+  left_join(world_map, by = c("country_name" = "region")) %>%
+  # Begin ggplot
+  ggplot() + 
+  # add countries and colour using the percentage of renewable energy
+  geom_polygon(aes(x = long, y = lat, group = group, fill = green_percentage)) +
+  # tidy up the scale/legend used for percentage, formatting with % sign and choosing the colouring
+  scale_fill_distiller(palette = "Spectral", label = percent_format()) +
+  # Add a title for the scale/legend
+  labs(fill = "Percentage Green Enregy Produced") +
+  # Change the aspect of the plot
+  coord_fixed(1.3) +
+  # Remove all other parts of the graph, e.g. box around the plot or lines in background
+  theme_void()
+```
+
+
+
+
+
+
+

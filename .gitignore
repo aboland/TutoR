@@ -43,4 +43,6 @@ README.html
 
 ignore/
 
+*.zip
+*.mov
 

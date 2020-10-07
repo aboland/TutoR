@@ -1,0 +1,113 @@
+---
+title: "Covid in Ireland Animation"
+author: "Aidan Boland"
+date: "`r format(Sys.Date(), '%d %b %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE)
+```
+
+```{r}
+# Read the data from URL
+covid_raw <- 
+  readr::read_csv(
+    "http://opendata-geohive.hub.arcgis.com/datasets/4779c505c43c40da9101ce53f34bb923_0.csv?outSR={%22latestWkid%22:3857,%22wkid%22:102100}"
+  )
+```
+
+
+```{r}
+library(dplyr)
+library(lubridate)
+
+covid_tidy <-
+  covid_raw %>%
+  mutate(date = as_date(ymd_hms(TimeStampDate))) %>%
+  filter(ConfirmedCovidCases > -1)
+```
+
+## Animation
+
+```{r, echo = F, eval = F}
+covid_tidy <-
+  covid_raw %>%
+  mutate(date = as_date(ymd_hms(TimeStampDate))) %>%
+  # Want to get the difference day on day for each county
+  # Group by county then save the lag as a new variable and finally ungroup
+  group_by(CountyName) %>%
+  mutate(yesterday_total = lag(ConfirmedCovidCases, order_by = date)) %>%
+  ungroup() %>%
+  # Can now easily calculate the difference
+  mutate(new_cases = ConfirmedCovidCases - yesterday_total) %>%
+  filter(ConfirmedCovidCases > -1)
+
+new_case_animate <- 
+  map_data("world") %>%
+  filter(region == "Ireland") %>%
+  ggplot() +
+  geom_polygon(aes(x = long, y = lat, group = group), fill = NA, colour = "black") +
+  coord_fixed(1.3) +
+  #
+  # Add the data for covid
+  geom_point(data = covid_tidy, aes(y = Lat, x = Long, size = new_cases), colour = "cornflowerblue") +
+  theme_void() +
+  scale_size_continuous(range = c(-1, 10)) +
+  geom_text(data = covid_tidy, aes(y = Lat - 0.2, x = Long, label = CountyName), size = 3) +
+  transition_time(date) +
+  labs(title = 'Date: {frame_time}',size = "New Cases")
+
+
+animate(new_case_animate, 
+        nframes = length(unique(covid_tidy$date)), 
+        fps = 2)
+```
+
+
+
+```{r}
+library(ggplot2)
+library(maps)
+library(gganimate)
+
+proportion_animate <- 
+  # - Map Data -
+  # First get map data for Ireland (`maps` package)
+  map_data("world") %>%
+  filter(region == "Ireland") %>%
+  # - Map Plot -
+  ggplot() +
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               fill = NA, # Background empty
+               colour = "grey") + # Outline of country in Grey
+  coord_fixed(1.3) + # Fix the aspect of the map
+  #  - Covid Plot -
+  # Now add the circles and text to the plot 
+  geom_point(data = covid_tidy, 
+             aes(y = Lat, x = Long, size =  PopulationProportionCovidCases), colour = "cornflowerblue") +
+  geom_text(data = covid_tidy, 
+            aes(y = Lat, x = Long, label = CountyName), nudge_x = 0.25, nudge_y = -0.1, size = 3.5) +
+  # Use the scale size to determine the smallest and largest circle sizes
+  scale_size_continuous(range = c(-1, 10)) +
+  # Style the graph
+  theme_void() +
+  theme(plot.title = element_text(size = 22), 
+        plot.subtitle = element_text(size = 22),
+        legend.background = element_rect(fill = "transparent", colour = NA)) +
+  # - Animation -
+  # The following lines control the animation, we want to animate over the date
+  # and the title should indicate the date
+  transition_time(date) +
+  labs(title = "COVID Cases by Population Proportion",
+       subtitle = 'Date: {frame_time}', 
+       size = "Cases per 100,000")
+
+# Create the animation, nframes and fps will set the speed of the animation
+animate(proportion_animate, 
+        nframes = length(unique(covid_tidy$date)), 
+        fps = 2)
+
+# Finally save the animation
+anim_save(filename = paste0("county_proportion_", Sys.Date(),".gif"))
+```

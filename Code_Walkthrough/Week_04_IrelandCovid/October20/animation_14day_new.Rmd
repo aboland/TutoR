@@ -1,0 +1,219 @@
+---
+title: "COVID in Ireland"
+author: "Aidan Boland"
+date: "`r format(Sys.Date(), '%d %b %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+
+# data tidy
+library(dplyr)
+
+# rolling sums
+library(zoo)
+
+# animation
+library(ggplot2)
+library(gganimate)
+library(transformr)
+
+# Needed but not loaded
+require(rgdal)
+require(broom)
+require(readr)
+require(tidyr)
+
+library(sf)
+```
+
+Information on the data can be found at [this link](https://data.gov.ie/dataset/covid19countystatisticshpscireland).
+
+```{r get spatial data}
+# The data must be downloaded and unzipped, there are multiple files in the zip which are needed
+directory_to_use <- "data/"
+download.file("https://opendata.arcgis.com/datasets/d9be85b30d7748b5b7c09450b8aede63_0.zip?outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D", 
+              file.path(directory_to_use, paste0("Covid19CountyStatisticsHPSCIreland_", Sys.Date(),".zip")))
+utils::unzip(file.path(directory_to_use, paste0("Covid19CountyStatisticsHPSCIreland_", Sys.Date(),".zip")),
+             exdir = directory_to_use)
+covid_openddata_shpdata <-  st_read(file.path(directory_to_use, "Covid19CountyStatisticsHPSCIreland.shp"), stringsAsFactors = F)
+```
+
+
+```{r covid numbers}
+# # Create data frame of the covid stats only, no spatial data
+county_csv <-
+  covid_openddata_shpdata  %>%
+  rename(PopulationCensus16 = Population, ConfirmedCovidCases = ConfirmedC) %>%
+  mutate(TimeStamp = as.Date(TimeStamp))
+
+
+testing_csv <- 
+  readr::read_csv("http://opendata-geohive.hub.arcgis.com/datasets/f6d6332820ca466999dbd852f6ad4d5a_0.csv?outSR={%22latestWkid%22:3857,%22wkid%22:102100}") %>%
+  mutate(Date_HPSC = as.Date(Date_HPSC))
+
+hospital_csv <- 
+  readr::read_csv("http://opendata-geohive.hub.arcgis.com/datasets/fe9bb23592ec4142a4f4c2c9bd32f749_0.csv?outSR={%22latestWkid%22:4326,%22wkid%22:4326}") %>%
+  mutate(Date = as.Date(Date))
+
+icu_csv <- 
+  readr::read_csv("https://opendata.arcgis.com/datasets/c8208a0a8ff04a45b2922ae69e9b2206_0.csv") %>%
+  mutate(extract = as.Date(extract))
+
+
+```
+
+
+```{r tidy and wrangle}
+covid_rolling14 <- 
+  county_csv %>%
+  
+  # Add any missing dates and fill the data for missing dates
+  group_by(CountyName) %>%
+  tidyr::complete(TimeStamp = seq(min(as.Date(.$TimeStamp)), # use .$TimeStamp to get global data min 
+                                  max(as.Date(.$TimeStamp)), # not just the min for the group_by var
+                                  by = "day")) %>%
+  # Ensure the data is arranged by date
+  arrange(TimeStamp) %>%
+  tidyr::fill(PopulationCensus16, ConfirmedCovidCases, .direction = "down") %>%
+  
+  # Calculate the lag and then the cases per day
+  mutate(lag_cases = lag(ConfirmedCovidCases, 1, default = 0),
+         new_cases = ConfirmedCovidCases - lag_cases,
+         new_cases_per100 = 100000 * (new_cases/PopulationCensus16),
+         
+         # Rolling 14 Day Total
+         rolling14 = rollsum(new_cases, 14, align = "right", fill = 0),
+         rolling14_per100 = rollsum(new_cases_per100, 14, align = "right", fill = 0),
+         mean_rolling14_per100 = rollsum(new_cases_per100, 14, align = "right", fill = 0)/14) %>%
+  ungroup()
+```
+
+
+
+## Animation
+
+```{r map animation}
+# Animation
+rolling14_anim <- 
+  covid_rolling14 %>%
+  # Filter the data by date
+  filter(TimeStamp >= "2020-08-01") %>% # Sys.Date() - 50
+  ggplot() + 
+  geom_sf(aes(fill = rolling14_per100, geometry = geometry), colour = NA) + 
+  theme_void() +
+  theme(text = element_text(size = 14)) +
+  scale_fill_distiller(palette = "RdYlGn",
+                       # limits = c(0, max(covid_rolling14$mean_rolling14_per100))
+                      ) +
+  # coord_sf(ndiscr = F) +
+  # -Animation-
+  # Plot elements for animation
+  transition_time(TimeStamp) +
+  labs(title = "Republic of Ireland - {format(frame_time, '%B %d')}",
+       subtitle = 'COVID Cases Per 100,000 (14 Day Total)', 
+       fill = "")
+```
+
+
+
+# Testing Data
+
+```{r}
+stats_key <- 
+  c("hospital_cases" = "Cases in Hospitals",
+    "icu_cases" = "Cases in ICU",
+    #"rolling14_labs" = "Tests (14 Day Average)", 
+    "rolling14_positive" = "Positive Tests (14 Day Total)",
+    "roling14_percentage" = "% Positive Tests (14 Day Total)")
+
+
+testing_tidy <- 
+  testing_csv %>%
+  arrange(Date_HPSC) %>%
+  mutate(daily_labs = TotalLabs - lag(TotalLabs),
+         daily_positive = Positive - lag(Positive),
+         rolling14_labs = rollsum(daily_labs, 14, align = "right", fill = 0),
+         rolling14_positive = rollsum(daily_positive, 14, align = "right", fill = 0),
+         roling14_percentage = 100*(rolling14_positive/rolling14_labs)) %>%
+  left_join(hospital_csv %>%
+              select(Date, 
+                     hospital_cases = SUM_number_of_confirmed_covid_1,
+                     hospital_new = SUM_no_new_admissions_covid19_p),
+            by = c("Date_HPSC" = "Date")) %>%
+  left_join(icu_csv %>%
+              select(extract, icu_cases = ncovidconf),
+            by = c("Date_HPSC" = "extract"))%>%
+  tidyr::pivot_longer(cols = names(stats_key), 
+                      names_to = "stat", values_to = "rolling14") %>%
+  mutate(stat = recode_factor(stat, !!!stats_key, .ordered = TRUE))
+
+
+testing_14_anim <- 
+  testing_tidy %>%  
+  filter(Date_HPSC >= "2020-08-01") %>% #, Date_HPSC <= max(covid_rolling14$TimeStamp)
+  ggplot(aes(x = Date_HPSC, y = rolling14), colour = "black") +
+  geom_line() +
+  geom_point(colour = "darkgreen") +
+  scale_y_continuous(position = c("right"), limits = c(0, NA)) +
+  facet_wrap(~stat, ncol = 1, scales = "free") +
+  labs(x = "", y = "", title = "Stats") +
+  theme_light() +
+  theme(text = element_text(size = 14),
+        strip.text.x = element_text(size = 16)) +
+  transition_reveal(Date_HPSC) + 
+  labs(title = "National Statistics",
+       subtitle = 'Data: https://opendata-geohive.hub.arcgis.com/',
+       x = "", y = "")
+```
+
+
+
+
+```{r combined gif, eval = F}
+library(magick)
+
+gif_length_sec = 15
+gif_fps = 10
+start_pause_sec <- 1
+end_pause_sec <-  5
+gif_frames = gif_length_sec * gif_fps
+
+map_ndates <- covid_rolling14 %>% filter(TimeStamp >= "2020-08-01") %>% select(TimeStamp) %>% distinct() %>% nrow()
+stat_ndates <- testing_tidy %>% filter(Date_HPSC >= "2020-08-01") %>% select(Date_HPSC) %>% distinct() %>% nrow()
+
+if(stat_ndates > map_ndates){
+  map_pause = ceiling((gif_fps * end_pause_sec) * (1+(stat_ndates - map_ndates)/map_ndates))
+  stat_pause =  gif_fps * end_pause_sec
+}
+
+
+map_anim2 <- 
+  animate(rolling14_anim, 
+          nframes = gif_frames, 
+          fps = gif_fps,
+          start_pause = start_pause_sec * gif_fps, 
+          end_pause = map_pause,
+          renderer = magick_renderer())
+
+test_anim2 <- 
+  animate(testing_14_anim,
+          nframes = gif_frames, 
+          fps = gif_fps,
+          start_pause = start_pause_sec * gif_fps, 
+          end_pause = stat_pause, 
+        renderer = magick_renderer())
+
+new_gif <- image_append(c(map_anim2[1], test_anim2[1]))
+for(i in 2:gif_frames){
+  combined <- image_append(c(map_anim2[i], test_anim2[i]))
+  new_gif <- c(new_gif, combined)
+}
+
+magick::image_write_gif(new_gif, 
+                        path = paste0(directory_to_use, "rolling_14day_combined_", Sys.Date(),".gif"),
+                        delay = 1/gif_fps)
+
+new_gif
+```

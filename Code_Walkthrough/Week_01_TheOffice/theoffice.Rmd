@@ -1,0 +1,94 @@
+---
+title: "Code Walkthrough"
+author: "Aidan Boland"
+date: "4/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## The Office
+
+We will analyse the office data
+
+```{r}
+office_ratings <- 
+  readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-17/office_ratings.csv')
+
+office_ratings
+```
+
+### IMDB Ratings
+
+We are going to explore the ratings from IMDB.
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+
+office_ratings %>% 
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = season, y = imdb_rating, group = season, colour = season)) +
+  geom_boxplot() +
+  labs(title = "Boxplots of IMDB Ratings per Season", x = "Season", y = "IMDB Rating") +
+  theme_light() +
+  geom_vline(xintercept = 7.5, linetype = 'dashed') +
+  annotate("text", x = 8.5, y = 6, label = "Micheal Scott\n Leaves")
+```
+
+
+### Summary Statstics
+
+```{r}
+library(knitr)
+office_ratings %>%
+  group_by(season) %>%
+  summarise(mean_rating = mean(imdb_rating),
+            highest_rating = max(imdb_rating),
+            lowest_rating = min(imdb_rating)) -> season_summary
+kable(season_summary)
+```
+
+
+
+### Multiple Variables Plot
+
+
+```{r}
+office_ratings
+```
+
+
+```{r}
+office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = imdb_rating, y = total_votes, colour = season)) +
+  geom_point() +
+  labs(title = "Votes vs Rating", x = "IMDB Rating", y = "Total Votes")
+```
+
+```{r}
+library(plotly)
+
+office_ratings %>%
+  mutate(season = as.factor(season)) %>%
+  ggplot(aes(x = imdb_rating, y = total_votes, colour = season, 
+              text = paste0("S", season, ".E", episode, " ", title,
+                           "<br>IMDB: ", imdb_rating, 
+                           "<br>No. Votes: ", total_votes, 
+                           "<br>Season: ", season))) +
+  geom_point() +
+  labs(title = "Votes vs Rating", x = "IMDB Rating", y = "Total Votes") -> votes_rating_plot
+
+ggplotly(votes_rating_plot, tooltip = "text")
+```
+
+
+
+
+
+

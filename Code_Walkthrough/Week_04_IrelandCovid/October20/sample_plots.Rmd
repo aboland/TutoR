@@ -1,0 +1,112 @@
+---
+title: "Untitled"
+author: "Aidan Boland"
+date: "9/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning = F, message = F}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(ggplot2)
+library(dplyr)
+
+covid_raw <- readr::read_csv("https://opendata.arcgis.com/datasets/d9be85b30d7748b5b7c09450b8aede63_0.csv?outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D")
+wtite.csv(covid_raw, paste0("data/cases", Sys.Date(), ".csv"))
+county_polygons <- readr::read_csv("data/county_polygon.csv")
+```
+
+
+
+```{r plot}
+covid_tidy_data <- 
+  raw_covid_stats %>%
+  select(CountyName, TimeStamp, Population, Lat, Long, ConfirmedC) %>%
+  mutate(TimeStamp = as.Date(TimeStamp)) %>%
+  group_by(CountyName) %>%
+  tidyr::complete(TimeStamp = seq(min(TimeStamp), 
+                                  max(as.Date(raw_covid_stats$TimeStamp)),
+                                  by = "day")) %>%
+  tidyr::fill(Population, Lat, Long, ConfirmedC, .direction = "down") %>%
+  mutate(lag_cases = lag(ConfirmedC, 1, default = 0),
+         new_cases = ConfirmedC - lag_cases)
+
+
+covid_tidy_data %>% 
+  filter(TimeStamp > "2020-08-01") %>%
+  group_by(CountyName) %>%
+  summarise(total_cases = sum(new_cases),
+            per100 = 100000*(total_cases/Population)) %>%
+  distinct() %>%
+  full_join(county_polygon_data, by = c("CountyName" = "id")) %>%
+  ggplot() + geom_polygon(aes(x = long, y = lat, group = group, fill = per100), colour = "black") + theme_void() +
+  scale_fill_distiller(palette = "Spectral") +
+  labs(fill = "Cases per 100k") +
+  coord_quickmap()
+```
+
+
+
+
+
+
+
+```{r}
+library(zoo)
+
+covid_tidy_data  %>%
+  select(CountyName, TimeStamp, Population, new_cases) %>%
+  arrange(CountyName, TimeStamp) %>%
+  group_by(CountyName) %>%
+  mutate(rolling14 = rollsum(new_cases, 14, align = "right", fill = 0),
+         rolling14_per100 = rollsum(100000*(new_cases/Population), 14, align = "right", fill = 0)) -> covid_rolling14
+
+
+# Most Recent 14 Day Total
+covid_rolling14 %>%
+  filter(TimeStamp == max(TimeStamp)) %>%
+  full_join(county_polygon_data, by = c("CountyName" = "id")) %>%
+  ggplot() + geom_polygon(aes(x = long, y = lat, group = group, fill = rolling14), colour = "black") + theme_void() +
+  scale_fill_distiller(palette = "Spectral") +
+  labs(fill = "14 day total", title = paste0("Up to ", format(max(covid_rolling14$TimeStamp), "%d %B"))) +
+  coord_quickmap()
+
+```
+
+
+
+
+
+
+```{r}
+library(gganimate)
+library(transformr)
+
+
+
+rolling14_anim <- 
+  covid_rolling14 %>%
+  filter(TimeStamp > Sys.Date() - 40) %>%
+  full_join(county_polygon_data, by = c("CountyName" = "id")) %>%
+  ggplot() + geom_polygon(aes(x = long, y = lat, group = group, fill = rolling14_per100), colour = "black") + theme_void() +
+  scale_fill_distiller(palette = "Spectral") +
+  labs(fill = "14 day total", title = paste0("Up to ", format(max(covid_rolling14$TimeStamp), "%d %B"))) +
+  coord_quickmap() +
+  #
+  # Animation plot elements
+  transition_time(TimeStamp) +
+  labs(title = "COVID Rolling 14 Day Cases",
+       subtitle = 'Up to: {format(frame_time, "%B %d")}', 
+       fill = "14 day cases per 100k")
+
+
+# Create the animation, nframes and fps will set the speed of the animation
+animate(rolling14_anim, 
+        nframes = 60, 
+        fps = 4,
+        end_pause = 10)
+
+# Finally save the animation
+anim_save(filename = paste0("rolling_14day_total_", Sys.Date(),".gif"))
+```

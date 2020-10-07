@@ -1,0 +1,218 @@
+---
+title: "GDPR"
+author: "Aidan Boland"
+date: "4/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = FALSE, message = FALSE, warning = FALSE)
+```
+
+
+ https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-21/readme.md
+ 
+
+```{r}
+gdpr_violations <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-21/gdpr_violations.tsv')
+gdpr_text <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-21/gdpr_text.tsv')
+```
+
+```{r}
+gdpr_violations[1:10,]
+gdpr_text[1:10,]
+```
+
+## Plot
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+gdpr_violations %>%
+  ggplot(aes(y = name, x = price, colour = name)) +
+  geom_point() +
+  scale_x_continuous(label = comma_format(prefix = "€")) +
+  theme(legend.position = "none")
+
+```
+
+```{r}
+
+gdpr_violations %>%
+  filter(price > 40000000)
+
+
+gdpr_violations %>%
+  group_by(controller) %>%
+  summarise(total_fines = sum(price), number_of_fines = length(price)) %>%
+  arrange(desc(total_fines)) %>%
+  head(10)
+
+
+gdpr_violations %>%
+  group_by(name) %>%
+  summarise(total_fines = sum(price), number_of_fines = length(price)) %>%
+  arrange(desc(total_fines)) %>%
+  head(10)
+
+```
+
+
+```{r}
+gdpr_violations %>%
+  group_by(name) %>%
+  summarise(total_fines = sum(price), number_of_fines = length(price)) %>%
+  ggplot(aes(y = reorder(name, number_of_fines), 
+             x = number_of_fines, 
+             fill = name)) +
+  theme(legend.position = "none") +
+  geom_bar(stat = "identity") +
+  labs(x = "Number of Fines", y = "Country", title = "Total Number of Fines per Country")
+
+
+
+```
+
+
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(maps)
+library(scales)
+
+gdpr_violations <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-21/gdpr_violations.tsv')
+
+world_map <- map_data("world")
+
+gdpr_violations %>%
+  group_by(name) %>%
+  summarise(total_fines = sum(price), number_of_fines = length(price)) %>%
+  left_join(world_map, by = c("name" = "region")) %>%
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill = number_of_fines)) +
+  scale_fill_distiller(palette = "Spectral", label = comma_format()) +
+  labs(fill = "Number of Fines") +
+  coord_fixed(1.3) +
+  theme_void()
+
+
+gdpr_violations$name[!gdpr_violations$name %in% world_map$region] %>%
+  unique()
+
+ # world_map$region is a vector so we need to use `unique` and `sort`
+world_map$region %>%
+  unique() %>%
+  sort()
+
+ # Here we have the full dataset, i.e. it is a data frame
+world_map %>%
+  distinct(region) %>%
+  arrange(region)
+  
+  
+
+library(stringr)
+
+gdpr_violations %>%
+  mutate(name = str_replace(name, "United Kingdom", "UK")) %>%
+  #
+  # The rest of the function from here is the same as above
+  #
+  group_by(name) %>%
+  summarise(total_fines = sum(price), number_of_fines = length(price)) %>%
+  left_join(world_map, by = c("name" = "region")) %>%
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill = number_of_fines)) +
+  scale_fill_distiller(palette = "Spectral", label = comma_format()) +
+  labs(fill = "Number of Fines") +
+  coord_fixed(1.3) +
+  theme_void()
+  
+
+
+```
+
+# Text Analysis
+
+```{r}
+# install.packages(c("tm", "SnowballC", "wordcloud", 'RColourBrewer))
+library("tm")
+library("SnowballC")
+library("wordcloud")
+library("RColorBrewer")
+
+
+my_dtm_func <- function(data_in, my_stopwords){
+
+  docs <- Corpus(VectorSource(data_in))
+  # inspect(docs)
+  
+  toSpace <- content_transformer(function(x , pattern ) gsub(pattern, " ", x))
+  docs <- tm_map(docs, toSpace, "/")
+  docs <- tm_map(docs, toSpace, "@")
+  docs <- tm_map(docs, toSpace, "\\|")
+  docs <- tm_map(docs, toSpace, "–")
+  
+  docs <- tm_map(docs, toSpace, "’")
+  
+  # Convert the text to lower case
+  docs <- tm_map(docs, content_transformer(tolower))
+  # Remove numbers
+  docs <- tm_map(docs, removeNumbers)
+  # Remove english common stopwords
+  docs <- tm_map(docs, removeWords, stopwords("english"))
+  # Remove punctuations
+  docs <- tm_map(docs, removePunctuation)
+  # Eliminate extra white spaces
+  docs <- tm_map(docs, stripWhitespace)
+  
+  # Remove your own stop word
+  # specify your stopwords as a character vector
+  docs <- tm_map(docs, removeWords, my_stopwords) 
+  
+  dtm <- TermDocumentMatrix(docs)
+  m <- as.matrix(dtm)
+  v <- sort(rowSums(m),decreasing = TRUE)
+  d <- data.frame(word = names(v),freq = v)
+  # head(d, 10)
+  return(d)
+}
+
+```
+
+
+
+```{r}
+
+gdpr_text_clean <- my_dtm_func(gdpr_violations$summary, my_stopwords = c("data", "€"))
+
+
+wordcloud(words = gdpr_text_clean$word, 
+          freq = gdpr_text_clean$freq, 
+          min.freq = 10,
+          max.words = 200, 
+          random.order = FALSE, 
+          rot.per = 0.35, 
+          colors = brewer.pal(8, "Dark2"))
+
+````
+
+
+
+
+
+
+
+
+
+
+
+
+
+

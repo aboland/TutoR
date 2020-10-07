@@ -1,0 +1,269 @@
+---
+title: "Covid Analysis"
+author: "Aidan Boland"
+date: "10/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
+                      fig.align = "center", fig.retina = 3)
+```
+
+
+### Load Data
+
+The data can be found at [covid19ireland-geohive.hub.arcgis.com/](https://covid19ireland-geohive.hub.arcgis.com), specifically:
+
+- [Test Data](https://covid19ireland-geohive.hub.arcgis.com/datasets/f6d6332820ca466999dbd852f6ad4d5a_0?geometry=129.375%2C-76.680%2C-129.375%2C76.680)
+- [Hospital Cases](https://covid19ireland-geohive.hub.arcgis.com/datasets/fe9bb23592ec4142a4f4c2c9bd32f749_0?geometry=129.375%2C-76.680%2C-129.375%2C76.680)
+- [ICU](https://covid19ireland-geohive.hub.arcgis.com/datasets/c8208a0a8ff04a45b2922ae69e9b2206_0)
+
+The data can be loaded using the `read_csv` function from the `readr` package. When loading the data the date column can be changed to a date type by using `as.Date`, this makes it easier to sort and filter by date.
+
+```{r load data}
+library(readr)
+library(dplyr)
+
+# LaboratoryLocalTimeSeriesHistoricView
+testing_csv <- 
+  read_csv("http://opendata-geohive.hub.arcgis.com/datasets/f6d6332820ca466999dbd852f6ad4d5a_0.csv?outSR={%22latestWkid%22:3857,%22wkid%22:102100}") %>%
+  mutate(DateStamp = as.Date(Date_HPSC))
+
+# Covid19AcuteHospitalHistoricSummaryOpenData
+hospital_csv <- 
+  read_csv("http://opendata-geohive.hub.arcgis.com/datasets/fe9bb23592ec4142a4f4c2c9bd32f749_0.csv?outSR={%22latestWkid%22:4326,%22wkid%22:4326}")  %>%
+  mutate(DateStamp = as.Date(Date))
+
+# ICUBISHistoricTimelinePublicView
+icu_csv <- 
+  read_csv("https://opendata.arcgis.com/datasets/c8208a0a8ff04a45b2922ae69e9b2206_0.csv") %>%
+  mutate(DateStamp = as.Date(extract))
+```
+
+### Tidy and Merge Data
+
+The 3 datasets can be joined together using the `left_join` function. 
+
+Extra statistics can also be calculated, e.g. the number of daily positive tests can be calculated by taking `Positive - lag(Positive)`. The `lag` function returns the previous value for a vector, therefore `Positive - lag(Positive)` will calculate today's value minus yesterday's value.
+
+The `rollsum` function calculates a rolling total, the argumnet `k = 14` tells tthe function to calcuate 14 day totals.
+
+```{r tidy data}
+library(zoo)
+
+covid_tidy <- 
+  testing_csv %>%
+  arrange(DateStamp) %>%
+  select(DateStamp, TotalLabs, Positive, Hospitals) %>%
+  mutate(daily_labs = TotalLabs - lag(TotalLabs),
+         daily_positive = Positive - lag(Positive),
+         rolling14_labs = rollsum(daily_labs, k = 14, align = "right", fill = NA),
+         rolling14_positive = rollsum(daily_positive, k = 14, align = "right", fill = NA),
+         roling14_percentage = 100*(rolling14_positive/rolling14_labs)) %>%
+  left_join(hospital_csv %>%
+               arrange(DateStamp) %>%
+               select(DateStamp, 
+                      hospital_cases = SUM_number_of_confirmed_covid_1,
+                      hospital_new = SUM_no_new_admissions_covid19_p,
+                      hospital_discharge = SUM_no_discharges_covid19_posit),
+            by = "DateStamp") %>%
+  left_join(icu_csv %>%
+              select(DateStamp, 
+                     icu_cases = ncovidconf),
+            by = "DateStamp") 
+```
+
+Summaries of the data can now be calculated, such as the statistics on a month by month basis.
+
+```{r, results='hide'}
+covid_table <- 
+  covid_tidy %>%
+  mutate(month = format(DateStamp, "%m"), month_name = format(DateStamp, "%B")) %>%
+  group_by(month, month_name) %>%
+  summarise(total_tests = sum(daily_labs, na.rm = T),
+            total_positive = sum(daily_positive, na.rm = T),
+            no_obs = length(daily_labs)) %>%
+  mutate(`% Positive` = paste0(round(100*(total_positive/total_tests), 2), "%")) %>%
+  select(Month = month_name, `No. of Days Data` = no_obs, Tests = total_tests, Positive = total_positive, `% Positive`)
+
+t(covid_table[,-1])
+```
+
+```{r, echo=FALSE}
+library(knitr)
+library(kableExtra)
+
+covid_table[,-(1:2)] %>%
+t()  %>%
+  kable(col.names = covid_table$Month) %>%
+  kable_styling()
+```
+
+
+Similar could be done using the day of the week instead of the month
+
+```{r, echo = F}
+covid_table_day <- 
+  covid_tidy %>%
+  mutate(day = format(DateStamp, "%A")) %>%
+  group_by(day) %>%
+  summarise(total_tests = sum(daily_labs, na.rm = T),
+            total_positive = sum(daily_positive, na.rm = T),
+            no_obs = length(daily_labs)) %>%
+  mutate(`% Positive` = paste0(round(100*(total_positive/total_tests), 2), "%")) %>%
+  select(Day = day, `No. of Days Data` = no_obs, Tests = total_tests, Positive = total_positive, `% Positive`) %>%
+  mutate(Day = ordered(Day, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
+  arrange(Day)
+
+covid_table_day %>%
+  t()  %>%
+  kable(col.names = covid_table$Month) %>%
+  kable_styling()
+```
+
+### Prepare for Plotting
+
+In order to make it easier to plot multiple variables using `ggplot2`, the data must be transformed from 'wide' to 'long'. The current format of the data has 1 row for each date, once transformed the data will have a row for each date and variable combination.
+
+#### Current Format (Wide)
+
+```{r , echo=F}
+covid_tidy %>%
+  select(DateStamp, hospital_cases, icu_cases, rolling14_positive, roling14_percentage) %>%
+  tail() %>%
+  kable(digits = 4) %>%
+  kable_styling()
+```
+
+#### Transformed Format (Long)
+
+The `pivot_longer` function will transform the data to a long format. The statistics present in the new data can be choosen from the current columns.
+
+```{r prepare for plot}
+stats_key <- 
+  c("hospital_cases" = "Cases in Hospitals",
+    "icu_cases" = "Cases in ICU",
+    "rolling14_positive" = "Positive Tests (14 Day Total)",
+    "roling14_percentage" = "% Positive Tests (14 Day Total)")
+
+testing_plot_data <- 
+  covid_tidy %>%
+  tidyr::pivot_longer(cols = names(stats_key), 
+                      names_to = "stat", values_to = "value") %>%
+  mutate(stat = recode_factor(stat, !!!stats_key, .ordered = TRUE))
+```
+
+```{r, echo = F}
+covid_tidy %>%
+  tidyr::pivot_longer(cols = c(hospital_cases, icu_cases, rolling14_positive, roling14_percentage), 
+                      names_to = "stat", values_to = "value") %>%
+  select(DateStamp, stat, value) %>%
+  tail() %>%
+  kable( digits = 4) %>%
+  kable_styling()
+```
+
+
+
+
+### Plot Statistics
+
+```{r}
+library(ggplot2)
+
+covid_plot <- 
+  testing_plot_data %>%
+  ggplot(aes(x = DateStamp, y = value)) +
+  geom_line() +
+  # Change y scale to right and have all plots begin scale at 0
+  scale_y_continuous(position = "right", limits = c(0, NA)) +
+  # Show each month on the x axis
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  # Create individual plots for each statistic
+  facet_wrap(~stat, ncol = 2, scales = "free") +
+  # Add labels to the plot
+  labs(x = "", y = "",
+       title = "Republic of Ireland Covid Stats",
+       caption = 'Data: https://opendata-geohive.hub.arcgis.com/') +
+  theme_light() +
+  theme(strip.text.x = element_text(size = 12))
+
+covid_plot
+```
+
+The plot can be saved locally using `ggsave`
+```{r plot save}
+ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi.png"),
+       plot = covid_plot)
+``` 
+
+
+
+#### Recent Data Only
+
+The data can be filter to show only certain dates using the `filter` function. The plot belows shows data from the beginning of August.
+
+```{r}
+covid_plot_aug <- 
+  testing_plot_data %>%  
+  # remove any data before "2020-08-01"
+  filter(DateStamp >= as.Date("2020-08-01")) %>%
+  ggplot(aes(x = DateStamp, y = value)) +
+  geom_line() +
+  scale_y_continuous(position = "right", limits = c(0, NA)) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  facet_wrap(~stat, ncol = 2, scales = "free") +
+  labs(x = "", y = "",
+       title = "Republic of Ireland Covid Stats",
+       caption = 'Data: https://opendata-geohive.hub.arcgis.com/') +
+  theme_light() +
+  theme(strip.text.x = element_text(size = 12))
+
+covid_plot_aug
+```
+
+```{r plot save 2, echo = F}
+ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi_from_august.png"),
+       plot = covid_plot_aug)
+```      
+
+
+## Animation
+
+We can create an animation of the data using the `gganimate` library.
+
+```{r}
+library(gganimate)
+
+covid_anim_ggplot <- 
+  testing_plot_data %>%
+  ggplot(aes(x = DateStamp, y = value)) +
+  geom_line() +
+  # Add green point to animation
+  geom_point(colour = "darkgreen") +
+  scale_y_continuous(position = "right", limits = c(0, NA)) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  facet_wrap(~stat, ncol = 2, scales = "free") +
+  labs(x = "", y = "", title = "Republic of Ireland Covid Stats") +
+  theme_light() +
+  theme(strip.text.x = element_text(size = 12)) +
+  # The animation will transition by the date
+  transition_reveal(DateStamp)
+
+covid_anim <- 
+  animate(covid_anim_ggplot,
+          nframes = 160, 
+          fps = 10,
+          start_pause = 5, 
+          end_pause = 40, 
+          detail = 2)
+
+covid_anim
+```
+
+Finally we save the animation.
+```{r save animation, eval = F}
+anim_save(filename = paste0("~/Desktop/", Sys.Date(), "_covid_roi.gif"),
+          animation = covid_anim)
+```
