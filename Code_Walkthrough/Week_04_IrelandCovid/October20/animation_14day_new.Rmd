@@ -38,6 +38,12 @@ download.file("https://opendata.arcgis.com/datasets/d9be85b30d7748b5b7c09450b8ae
 utils::unzip(file.path(directory_to_use, paste0("Covid19CountyStatisticsHPSCIreland_", Sys.Date(),".zip")),
              exdir = directory_to_use)
 covid_openddata_shpdata <-  st_read(file.path(directory_to_use, "Covid19CountyStatisticsHPSCIreland.shp"), stringsAsFactors = F)
+
+# covid_openddata_shpdata <-  rgdal::readOGR(dsn = file.path(directory_to_use, "Covid19CountyStatisticsHPSCIreland.shp"), stringsAsFactors = F)
+# county_polygon_data <- broom::tidy(covid_openddata_shpdata, region = "CountyName")
+# county_csv <- 
+#   readr::read_csv("http://opendata-geohive.hub.arcgis.com/datasets/d9be85b30d7748b5b7c09450b8aede63_0.csv?outSR={%22latestWkid%22:3857,%22wkid%22:102100}") %>%
+#   mutate(TimeStamp = as.Date(TimeStamp))
 ```
 
 
@@ -171,7 +177,7 @@ testing_14_anim <-
 
 
 
-```{r combined gif, eval = F}
+```{r combined gif}
 library(magick)
 
 gif_length_sec = 15
@@ -184,7 +190,7 @@ map_ndates <- covid_rolling14 %>% filter(TimeStamp >= "2020-08-01") %>% select(T
 stat_ndates <- testing_tidy %>% filter(Date_HPSC >= "2020-08-01") %>% select(Date_HPSC) %>% distinct() %>% nrow()
 
 if(stat_ndates > map_ndates){
-  map_pause = ceiling((gif_fps * end_pause_sec) * (1+(stat_ndates - map_ndates)/map_ndates))
+  map_pause = ceiling((gif_fps * end_pause_sec) + (gif_fps* (1+(stat_ndates - map_ndates)/map_ndates)))
   stat_pause =  gif_fps * end_pause_sec
 }
 

@@ -33,16 +33,46 @@ electoral14_plot <-
   ggplot() + 
   geom_sf(aes(fill = P14_100k), colour = NA) + 
   theme_void() +
-  scale_fill_distiller(palette = "RdYlGn") +
+  scale_fill_distiller(palette = "RdYlGn",
+                       limits = c(0, NA)) +
   coord_sf(ndiscr = F) +
   labs(title = paste0("Republic of Ireland  ", format(date_to_use - 14, "%d/%m"), " - ", format(date_to_use, "%d/%m")),
-       subtitle = 'COVID Cases Per 100,000 (14 Day Total)', 
+       subtitle = 'COVID Cases Per 100,000 (14 Day Incidence)', 
        fill = "")
 
-ggsave(filename = paste0("data/electoral_data_",Sys.Date(),".png"), 
+ggsave(filename = file.path(directory_to_use,paste0("data/electoral_data_",Sys.Date(),".png")), 
        plot = electoral14_plot, dpi = 1200)
 
 ```
 
 
+
+```{r}
+
+max_val <- max(electoral_data$P14_100k)
+
+utils::unzip(file.path(directory_to_use, paste0("Covid19_LEACases_Mapped_2020-10-09.zip")), exdir = directory_to_use)
+
+electoral_data <- 
+  st_read(file.path(directory_to_use, "Covid19_LEACases_Mapped.shp"), stringsAsFactors = F) %>%
+  mutate(EventDate = as.Date(EventDate))
+
+date_to_use <- max(electoral_data$EventDate)
+
+electoral14_plot_1005 <- 
+  electoral_data %>%
+  filter(EventDate == max(EventDate)) %>%
+  ggplot() + 
+  geom_sf(aes(fill = P14_100k), colour = NA) + 
+  theme_void() +
+  scale_fill_distiller(palette = "RdYlGn",
+                       limits = c(0, max_val)) +
+  coord_sf(ndiscr = F) +
+  labs(title = paste0("Republic of Ireland  ", format(date_to_use - 14, "%d/%m"), " - ", format(date_to_use, "%d/%m")),
+       subtitle = 'COVID Cases Per 100,000 (14 Day Incidence)', 
+       fill = "")
+
+ggsave(filename = paste0("data/electoral_10-05_",Sys.Date(),".png"), 
+       plot = electoral14_plot_1005, dpi = 1200)
+```
 

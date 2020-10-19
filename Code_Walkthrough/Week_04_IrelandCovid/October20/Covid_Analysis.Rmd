@@ -1,27 +1,46 @@
 ---
 title: "Covid Analysis"
 author: "Aidan Boland"
-date: "10/6/2020"
+date: "`r format(Sys.Date(), '%d %b %Y')`"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
-                      fig.align = "center", fig.retina = 3)
+                      fig.align = "center", fig.retina = 3, 
+                      fig.width = 10, fig.height = 5)
+
+full_text <- F
+extra_figures = 'hold'
+if(full_text)
+  extra_figures = 'asis'
+
+ggsaveTF <- F
+
+# cols = hcl(c(15, 15+180), 100, 65)
+# c("#999999", "#E69F00", "#56B4E9", "#009E73",
+#           "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cols <- cbp1 <- 
+  c("#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ```
 
 
-### Load Data
+```{r, echo = F, eval = full_text, results='asis'}
+cat("### Load Data  \n
 
-The data can be found at [covid19ireland-geohive.hub.arcgis.com/](https://covid19ireland-geohive.hub.arcgis.com), specifically:
+The data can be found at [covid19ireland-geohive.hub.arcgis.com](https://covid19ireland-geohive.hub.arcgis.com), specifically:  \n
 
-- [Test Data](https://covid19ireland-geohive.hub.arcgis.com/datasets/f6d6332820ca466999dbd852f6ad4d5a_0?geometry=129.375%2C-76.680%2C-129.375%2C76.680)
-- [Hospital Cases](https://covid19ireland-geohive.hub.arcgis.com/datasets/fe9bb23592ec4142a4f4c2c9bd32f749_0?geometry=129.375%2C-76.680%2C-129.375%2C76.680)
-- [ICU](https://covid19ireland-geohive.hub.arcgis.com/datasets/c8208a0a8ff04a45b2922ae69e9b2206_0)
+- [Test Data](https://covid19ireland-geohive.hub.arcgis.com/datasets/f6d6332820ca466999dbd852f6ad4d5a_0?geometry=129.375%2C-76.680%2C-129.375%2C76.680)\n
+- [Hospital Cases](https://covid19ireland-geohive.hub.arcgis.com/datasets/fe9bb23592ec4142a4f4c2c9bd32f749_0?geometry=129.375%2C-76.680%2C-129.375%2C76.680)\n
+- [ICU](https://covid19ireland-geohive.hub.arcgis.com/datasets/c8208a0a8ff04a45b2922ae69e9b2206_0)\n
+- [Profile](https://opendata-geohive.hub.arcgis.com/datasets/d8eb52d56273413b84b0187a4e9117be_0)\n
 
-The data can be loaded using the `read_csv` function from the `readr` package. When loading the data the date column can be changed to a date type by using `as.Date`, this makes it easier to sort and filter by date.
+The data can be loaded using the `read_csv` function from the `readr` package. When loading the data the date column can be changed to a date type by using `as.Date`, this makes it easier to sort and filter by date.\n")
+```
 
-```{r load data}
+
+```{r load data, echo = full_text}
 library(readr)
 library(dplyr)
 
@@ -39,27 +58,43 @@ hospital_csv <-
 icu_csv <- 
   read_csv("https://opendata.arcgis.com/datasets/c8208a0a8ff04a45b2922ae69e9b2206_0.csv") %>%
   mutate(DateStamp = as.Date(extract))
+
+# CovidStatisticsProfileHPSCIrelandOpenData
+profile_csv <-
+  read_csv("https://opendata.arcgis.com/datasets/d8eb52d56273413b84b0187a4e9117be_0.csv") %>%
+  mutate(DateStamp = as.Date(StatisticsProfileDate))
 ```
 
-### Tidy and Merge Data
+
+
+
+
+
+```{r, echo = F, eval = full_text, results='asis', echo = full_text}
+cat("### Tidy and Merge Data
 
 The 3 datasets can be joined together using the `left_join` function. 
 
 Extra statistics can also be calculated, e.g. the number of daily positive tests can be calculated by taking `Positive - lag(Positive)`. The `lag` function returns the previous value for a vector, therefore `Positive - lag(Positive)` will calculate today's value minus yesterday's value.
 
-The `rollsum` function calculates a rolling total, the argumnet `k = 14` tells tthe function to calcuate 14 day totals.
+The `rollsum` function calculates a rolling total, the argument `k = 14` tells the function to calculate 14 day totals.")
+```
 
-```{r tidy data}
-library(zoo)
+
+```{r tidy data, echo = full_text}
+
+# library(zoo)
+my_rolling_sum <- function(x, n_days = 14) zoo::rollsum(x - lag(x), k = n_days, align = "right", fill = NA)
 
 covid_tidy <- 
   testing_csv %>%
   arrange(DateStamp) %>%
-  select(DateStamp, TotalLabs, Positive, Hospitals) %>%
-  mutate(daily_labs = TotalLabs - lag(TotalLabs),
+  # select(DateStamp, TotalLabs, Positive, Hospitals) %>%
+  transmute(DateStamp,
+         daily_labs = TotalLabs - lag(TotalLabs),
          daily_positive = Positive - lag(Positive),
-         rolling14_labs = rollsum(daily_labs, k = 14, align = "right", fill = NA),
-         rolling14_positive = rollsum(daily_positive, k = 14, align = "right", fill = NA),
+         rolling14_labs = my_rolling_sum(TotalLabs),
+         rolling14_positive = my_rolling_sum(Positive),
          roling14_percentage = 100*(rolling14_positive/rolling14_labs)) %>%
   left_join(hospital_csv %>%
                arrange(DateStamp) %>%
@@ -70,22 +105,30 @@ covid_tidy <-
             by = "DateStamp") %>%
   left_join(icu_csv %>%
               select(DateStamp, 
-                     icu_cases = ncovidconf),
+                     icu_cases = ncovidconf,
+                     icu_new = adcconf),
             by = "DateStamp") 
 ```
 
-Summaries of the data can now be calculated, such as the statistics on a month by month basis.
 
-```{r, results='hide'}
+```{r, echo = F, eval = full_text, results='asis'}
+cat("Summaries of the data can now be calculated, such as the statistics on a month by month basis.")
+```
+
+```{r, results='hide', echo = full_text}
 covid_table <- 
   covid_tidy %>%
   mutate(month = format(DateStamp, "%m"), month_name = format(DateStamp, "%B")) %>%
   group_by(month, month_name) %>%
   summarise(total_tests = sum(daily_labs, na.rm = T),
             total_positive = sum(daily_positive, na.rm = T),
-            no_obs = length(daily_labs)) %>%
+            no_obs = length(daily_labs),
+            new_hospital = sum(hospital_new, na.rm = T),
+            new_icu = sum(icu_new, na.rm = T)) %>%
   mutate(`% Positive` = paste0(round(100*(total_positive/total_tests), 2), "%")) %>%
-  select(Month = month_name, `No. of Days Data` = no_obs, Tests = total_tests, Positive = total_positive, `% Positive`)
+  select(Month = month_name, `No. of Days Data` = no_obs, 
+         Tests = total_tests, Positive = total_positive, `% Positive`,
+         `Hospital Admissions` = new_hospital, `ICU Admissions` = new_icu)
 
 t(covid_table[,-1])
 ```
@@ -101,9 +144,11 @@ t()  %>%
 ```
 
 
-Similar could be done using the day of the week instead of the month
+```{r, echo = F, eval = full_text, results='asis'}
+cat("Similar could be done using the day of the week instead of the month")
+```
 
-```{r, echo = F}
+```{r, echo = F, eval = full_text}
 covid_table_day <- 
   covid_tidy %>%
   mutate(day = format(DateStamp, "%A")) %>%
@@ -116,31 +161,36 @@ covid_table_day <-
   mutate(Day = ordered(Day, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
   arrange(Day)
 
-covid_table_day %>%
+covid_table_day[,-1] %>%
   t()  %>%
-  kable(col.names = covid_table$Month) %>%
+  kable(col.names = as.character(covid_table_day$Day))%>%
   kable_styling()
 ```
 
-### Prepare for Plotting
+```{r, echo = F, eval = full_text, results='asis'}
+cat("### Prepare for Plotting
 
 In order to make it easier to plot multiple variables using `ggplot2`, the data must be transformed from 'wide' to 'long'. The current format of the data has 1 row for each date, once transformed the data will have a row for each date and variable combination.
 
-#### Current Format (Wide)
+#### Current Format (Wide)")
+```
 
-```{r , echo=F}
+```{r ,echo=F, eval = full_text}
 covid_tidy %>%
   select(DateStamp, hospital_cases, icu_cases, rolling14_positive, roling14_percentage) %>%
-  tail() %>%
+  arrange(desc(DateStamp)) %>%
+  head() %>%
   kable(digits = 4) %>%
   kable_styling()
 ```
 
-#### Transformed Format (Long)
+```{r, echo = F, eval = full_text, results='asis'}
+cat("#### Transformed Format (Long)
 
-The `pivot_longer` function will transform the data to a long format. The statistics present in the new data can be choosen from the current columns.
+The `pivot_longer` function will transform the data to a long format. The statistics present in the new data can be chosen from the current columns.")
+```
 
-```{r prepare for plot}
+```{r prepare for plot, echo = full_text}
 stats_key <- 
   c("hospital_cases" = "Cases in Hospitals",
     "icu_cases" = "Cases in ICU",
@@ -154,7 +204,7 @@ testing_plot_data <-
   mutate(stat = recode_factor(stat, !!!stats_key, .ordered = TRUE))
 ```
 
-```{r, echo = F}
+```{r, echo = F, eval = full_text}
 covid_tidy %>%
   tidyr::pivot_longer(cols = c(hospital_cases, icu_cases, rolling14_positive, roling14_percentage), 
                       names_to = "stat", values_to = "value") %>%
@@ -167,9 +217,9 @@ covid_tidy %>%
 
 
 
-### Plot Statistics
+## Graphs
 
-```{r}
+```{r full plot, echo = full_text}
 library(ggplot2)
 
 covid_plot <- 
@@ -187,24 +237,31 @@ covid_plot <-
        title = "Republic of Ireland Covid Stats",
        caption = 'Data: https://opendata-geohive.hub.arcgis.com/') +
   theme_light() +
-  theme(strip.text.x = element_text(size = 12))
+  theme(text = element_text(size = 15))
 
 covid_plot
 ```
 
-The plot can be saved locally using `ggsave`
-```{r plot save}
+```{r, echo = F, eval = full_text, results='asis'}
+cat("The plot can be saved locally using `ggsave`")
+```
+
+
+```{r plot save, eval = ggsaveTF, echo = full_text}
 ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi.png"),
-       plot = covid_plot)
+       plot = covid_plot, width = 7, height = 5, units = "in")
 ``` 
 
 
 
-#### Recent Data Only
+```{r, echo = F, eval = full_text, results='asis'}
+cat("#### Recent Data Only
 
-The data can be filter to show only certain dates using the `filter` function. The plot belows shows data from the beginning of August.
+The data can be filter to show only certain dates using the `filter` function. The plot below shows data from the beginning of August.")
+```
 
-```{r}
+
+```{r august on plot, echo = full_text, fig.width=10}
 covid_plot_aug <- 
   testing_plot_data %>%  
   # remove any data before "2020-08-01"
@@ -212,58 +269,353 @@ covid_plot_aug <-
   ggplot(aes(x = DateStamp, y = value)) +
   geom_line() +
   scale_y_continuous(position = "right", limits = c(0, NA)) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  scale_x_date(date_breaks = "2 week", date_labels = "%d %b") +
   facet_wrap(~stat, ncol = 2, scales = "free") +
   labs(x = "", y = "",
-       title = "Republic of Ireland Covid Stats",
+       title = "Republic of Ireland Since August",
        caption = 'Data: https://opendata-geohive.hub.arcgis.com/') +
   theme_light() +
-  theme(strip.text.x = element_text(size = 12))
+  theme(text = element_text(size = 15))
 
 covid_plot_aug
 ```
 
-```{r plot save 2, echo = F}
+```{r plot save 2, echo = F, eval = ggsaveTF}
 ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi_from_august.png"),
        plot = covid_plot_aug)
 ```      
 
 
-## Animation
+<!-- ## Animation -->
 
-We can create an animation of the data using the `gganimate` library.
+<!-- We can create an animation of the data using the `gganimate` library. -->
 
-```{r}
-library(gganimate)
+<!-- ```{r, fig.width=10} -->
+<!-- library(gganimate) -->
 
-covid_anim_ggplot <- 
-  testing_plot_data %>%
-  ggplot(aes(x = DateStamp, y = value)) +
+<!-- covid_anim_ggplot <-  -->
+<!--   testing_plot_data %>% -->
+<!--   ggplot(aes(x = DateStamp, y = value)) + -->
+<!--   geom_line() + -->
+<!--   # Add green point to animation -->
+<!--   geom_point(colour = "darkgreen") + -->
+<!--   scale_y_continuous(position = "right", limits = c(0, NA)) + -->
+<!--   scale_x_date(date_breaks = "1 month", date_labels = "%b") + -->
+<!--   facet_wrap(~stat, ncol = 2, scales = "free") + -->
+<!--   labs(x = "", y = "", title = "Republic of Ireland Covid Stats") + -->
+<!--   theme_light() + -->
+<!--   theme(strip.text.x = element_text(size = 12)) + -->
+<!--   # The animation will transition by the date -->
+<!--   transition_reveal(DateStamp) -->
+
+<!-- covid_anim <-  -->
+<!--   animate(covid_anim_ggplot, -->
+<!--           nframes = 160,  -->
+<!--           fps = 10, -->
+<!--           start_pause = 5,  -->
+<!--           end_pause = 40,  -->
+<!--           detail = 2) -->
+
+<!-- covid_anim -->
+<!-- ``` -->
+
+<!-- Finally we save the animation. -->
+<!-- ```{r save animation, eval = F} -->
+<!-- anim_save(filename = paste0("~/Desktop/", Sys.Date(), "_covid_roi.gif"), -->
+<!--           animation = covid_anim) -->
+<!-- ``` -->
+
+
+
+## Breakdown of Cases
+
+
+```{r daily cases by age, echo =F, eval = F}
+profile_csv %>%
+  select(DateStamp, starts_with("Aged")) %>%
+  arrange(DateStamp) %>%
+  mutate(across(starts_with("Aged"), function(x) x - lag(x))) %>%
+  tidyr::pivot_longer(cols = starts_with("Aged"), 
+                      names_to = "Age_Group", values_to = "Cases") %>%
+  mutate(Age_Group = forcats::fct_relevel(Age_Group, unique(.$Age_Group))) %>%
+  filter(abs(Cases) < 3000, Cases > -10) %>%
+  # filter(Cases > 0) %>% #Cases > -10
+  ggplot(aes(x = DateStamp, y = Cases)) +
   geom_line() +
-  # Add green point to animation
-  geom_point(colour = "darkgreen") +
-  scale_y_continuous(position = "right", limits = c(0, NA)) +
+  facet_wrap(~Age_Group) +
   scale_x_date(date_breaks = "1 month", date_labels = "%b") +
-  facet_wrap(~stat, ncol = 2, scales = "free") +
-  labs(x = "", y = "", title = "Republic of Ireland Covid Stats") +
+  labs(title = "Daily Cases by Age Group",
+       x = "") +
+  theme_light() 
+  # theme(strip.text.x = element_text(size = 10))
+
+ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi_byAge.png"))
+```
+
+
+
+
+```{r 14 day incidence by age, echo = full_text}
+by_age_14day <- 
+  profile_csv %>%
+  select(DateStamp, starts_with("Aged")) %>%
+  arrange(DateStamp) %>%
+  # Calculate rolling 14 day totals of all columns beginning with 'Aged'
+  mutate(across(starts_with("Aged"), my_rolling_sum)) %>%
+  # Pivot table to long format for columns beginning with 'Aged'
+  tidyr::pivot_longer(cols = starts_with("Aged"), 
+                      names_to = "Age_Group", values_to = "Cases")
+```
+
+```{r, echo = F, eval = full_text}
+by_age_14day %>%
+  arrange(desc(DateStamp)) %>%
+  head() %>%
+  kable( digits = 4) %>%
+  kable_styling()
+```
+
+```{r 14 day by age plot, echo = full_text, eval = full_text}
+by_age_14day %>%
+  filter(DateStamp > "2020-08-01") %>%
+  # Change order in which the age groups will appear for plot
+  mutate(Age_Group = forcats::fct_relevel(Age_Group, unique(.$Age_Group))) %>%
+  # Begin plot
+  ggplot(aes(x = DateStamp, y = Cases)) +
+  geom_line() +
+  # Create a single plot for each age group
+  facet_wrap(~Age_Group) +
+  # Specify the breaks for dates
+  scale_x_date(date_breaks = "3 week", date_labels = "%d %b") +
+  labs(title = "14 Day Incidence by Age Group",
+       x = "", y = "") +
   theme_light() +
-  theme(strip.text.x = element_text(size = 12)) +
-  # The animation will transition by the date
-  transition_reveal(DateStamp)
-
-covid_anim <- 
-  animate(covid_anim_ggplot,
-          nframes = 160, 
-          fps = 10,
-          start_pause = 5, 
-          end_pause = 40, 
-          detail = 2)
-
-covid_anim
+  theme(text = element_text(size = 16))
 ```
 
-Finally we save the animation.
-```{r save animation, eval = F}
-anim_save(filename = paste0("~/Desktop/", Sys.Date(), "_covid_roi.gif"),
-          animation = covid_anim)
+```{r save 14 day by age plot, echo = F, eval = F}
+ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi_byAge14day.png"))
 ```
+
+
+
+```{r hospitalised cases by age, echo = full_text, eval = full_text}
+# same as above but with "HospitalisedAged"
+profile_csv %>%
+  select(DateStamp, starts_with("HospitalisedAged")) %>%
+  arrange(DateStamp) %>%
+  mutate(across(starts_with("HospitalisedAged"), my_rolling_sum)) %>%
+  tidyr::pivot_longer(cols = starts_with("HospitalisedAged"), 
+                      names_to = "Age_Group", values_to = "Cases") %>%
+  filter(DateStamp > "2020-08-01") %>%
+  mutate(Age_Group = forcats::fct_relevel(Age_Group, unique(.$Age_Group))) %>%
+  ggplot(aes(x = DateStamp, y = Cases)) +
+  geom_line() +
+  facet_wrap(~Age_Group) +
+  scale_x_date(date_breaks = "3 week", date_labels = "%d %b") +
+  labs(title = "14 Day Admissions to Hospital by Age Group",
+       x = "", y = "") +
+  theme_light() +
+  theme(text = element_text(size = 16))
+```
+
+```{r save hospitalised cases by age, echo = F, eval = F}
+ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi_HosptialbyAge.png"))
+```
+
+
+
+```{r, echo = F, eval = full_text, results='asis'}
+cat("## Combining Cases and Hospital Admissions")
+```
+
+```{r combined hospital and cases by age, echo = F, eval = F}
+case_and_hospital_14day <- 
+  profile_csv %>%
+  select(DateStamp, starts_with(c("Aged","HospitalisedAged"))) %>%
+  # use mutates to consolidate case groupings to match hospital groups
+  mutate(Aged4 = Aged1 + Aged1to4, HospitalisedAged4 = HospitalisedAged5, .keep = "unused")%>%
+  mutate(across(starts_with(c("Aged","HospitalisedAged")), my_rolling_sum)) %>%
+  tidyr::pivot_longer(cols = starts_with(c("Aged","HospitalisedAged")), 
+                      names_to = "Age_Group", values_to = "Cases") %>%
+  # create new variable 'Hospital' to denote if the row is a value for hospital
+  # also remove Hospitalised from hospital age groups to match the cases grouping
+  mutate(Hospital = if_else(stringr::str_detect(Age_Group, "Hospital"), "Hospitalised", "Total"),
+         Age_Group = stringr::str_replace(Age_Group, "Hospitalised", "")) %>%
+  # pivot on the new 'Hospital' variable
+  tidyr::pivot_wider(names_from = Hospital, values_from = Cases)
+```
+
+```{r, echo = full_text}
+case_and_hospital_14day <- 
+  profile_csv %>%
+  select(DateStamp, starts_with(c("Aged","HospitalisedAged"))) %>%
+  # use mutates to consolidate case groupings to match hospital groups
+  mutate(Aged4 = Aged1 + Aged1to4, HospitalisedAged4 = HospitalisedAged5, .keep = "unused")%>%
+  mutate(across(starts_with(c("Aged","HospitalisedAged")), my_rolling_sum)) %>%
+  tidyr::pivot_longer(cols = starts_with(c("Aged","HospitalisedAged")), 
+                      names_to = "Age_Group", values_to = "Cases")
+```
+
+```{r combined table 1, echo = F, eval = full_text}
+case_and_hospital_14day %>%
+  filter(DateStamp > max(profile_csv$DateStamp) - 5,
+        Age_Group %in% c("Aged4", "HospitalisedAged4")) %>%
+  arrange(desc(DateStamp)) %>%
+  head() %>%
+  kable( digits = 4) %>%
+  kable_styling()
+```
+
+```{r, echo = full_text}
+case_and_hospital_14day <-
+  case_and_hospital_14day %>%
+  # create new variable 'Hospital' to denote if the row is a value for hospital
+  # also remove Hospitalised from hospital age groups to match the cases grouping
+  mutate(Hospital = if_else(stringr::str_detect(Age_Group, "Hospital"), "Hospitalised", "Total"),
+         Age_Group = stringr::str_replace(Age_Group, "Hospitalised", ""))
+```
+
+```{r, echo = F, eval = full_text}
+case_and_hospital_14day %>%
+  filter(DateStamp > max(profile_csv$DateStamp) - 5,
+        Age_Group %in% c("Aged4", "HospitalisedAged4")) %>%
+  arrange(desc(DateStamp)) %>%
+  head() %>%
+  kable( digits = 4) %>%
+  kable_styling()
+```
+
+
+```{r, echo = full_text}
+case_and_hospital_14day <-
+  case_and_hospital_14day %>%
+  # pivot on the new 'Hospital' variable
+  tidyr::pivot_wider(names_from = Hospital, values_from = Cases)
+```
+
+```{r, echo = F, eval = full_text}
+case_and_hospital_14day %>%
+  filter(DateStamp > max(profile_csv$DateStamp) - 5,
+        Age_Group %in% c("Aged4", "HospitalisedAged4")) %>%
+  arrange(desc(DateStamp)) %>%
+  head() %>%
+  kable( digits = 4) %>%
+  kable_styling()
+``` 
+
+
+
+
+```{r, echo = F, eval = full_text, results='asis'}
+cat("#### Plot")
+```
+
+
+```{r combined hospital and cases by age plot, echo = full_text, fig.height = 7} 
+# scl is used to scale the lines for the two groups
+# We want the max values for both to be the limit for each
+scl <- 
+  case_and_hospital_14day  %>%
+  filter(DateStamp > "2020-08-01") %>%
+  summarise(max_tot = max(Total, na.rm = T),
+            max_hospital = max(Hospitalised, na.rm = T)) %>%
+  mutate(scale = max_tot/max_hospital) %>%
+  pull(scale)
+
+
+# cols are colours which are colourblind friendly
+cols <-  
+  c("#E69F00", "#56B4E9", "#009E73",
+    "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+case_and_hospital_14day  %>%
+  filter(DateStamp > "2020-08-01") %>%
+  mutate(Age_Group = forcats::fct_relevel(Age_Group, c("Aged4", "Aged5to14"))) %>%
+  ggplot() +
+  # Add line for total cases
+  geom_line(aes(x = DateStamp, y = Total, colour = "Total Cases")) +
+  # Add line for hospital admissions
+  geom_line(aes(x = DateStamp, y = Hospitalised*scl, colour = "Hospitalised")) +
+  # Create a separate plot for each group
+  facet_wrap(~Age_Group) +
+  # sec_axis scales the hospital admissions data and adds axis labels on the right hand side
+  scale_y_continuous(sec.axis = sec_axis(~./scl, name = "14 Day Hopital Admissions")) +
+  scale_x_date(date_breaks = "3 week", date_labels = "%d %b") +
+  # Use the custom colours
+  scale_colour_manual(values = cols) +
+  labs(title = "14 Day Incidence and Hospital Admissions by Age Group", 
+       x = "", y = "14 Day Incidence", colour= "") +
+  theme_light() +
+  # Change elements of the plot to match the colours of the lines
+  theme(legend.position = "none",
+        legend.margin=margin(-10,0,0,0),
+        axis.text.y.right=element_text(colour=cols[1]),
+        axis.ticks.y.right=element_line(colour=cols[1]),
+        axis.title.y.right=element_text(colour=cols[1]),
+        axis.text.y=element_text(colour=cols[2]),
+        axis.ticks.y=element_line(colour=cols[2]),
+        axis.title.y=element_text(colour=cols[2]),
+        text = element_text(size = 16))
+```
+
+
+```{r save combined hospital and cases by age plot, echo = F, fig.height = 7, eval = ggsaveTF}
+ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi_CombinedbyAge.png"))
+```
+
+
+
+```{r, echo = F}
+median_age_plot <- 
+  profile_csv %>%
+  select(DateStamp, Median_Age) %>%
+  # mutate(across(Median_Age, function(x) rollsum(x - lag(x) , k = 14, align = "right", fill = NA))) %>%
+  # filter(abs(Cases) < 4000, Cases > -10) %>%
+  ggplot(aes(x = DateStamp, y =  Median_Age)) +
+  geom_line() +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  labs(x = "", y = "Median Age") +
+  theme_light() +
+  theme(strip.text.x = element_text(size = 10))
+```
+
+```{r, echo = F, eval = ggsaveTF}
+ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi_medianage.png"), plot = median_age_plot)
+```
+
+
+```{r, echo = F, eval = full_text, results='asis'}
+cat("## Origin of Transmission")
+```
+
+```{r, echo = full_text}
+profile_csv %>%
+  mutate(NoData = 100 - (CommunityTransmission + CloseContact + TravelAbroad),
+         NoData = if_else(NoData < 0, 0, NoData)) %>%
+  # select(DateStamp, CommunityTransmission, CloseContact, TravelAbroad, NoData) %>%
+  tidyr::pivot_longer(cols = c(CommunityTransmission, CloseContact, TravelAbroad, NoData),
+                      names_to = "Origin", values_to = "Perc") %>%
+  tidyr::drop_na() %>%
+  mutate(Origin = forcats::fct_relevel(Origin, unique(.$Origin))) %>%
+  ggplot(aes(x = DateStamp, y = Perc, colour = Origin)) +
+  geom_line(size = 0.8) + 
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 75), position = "right",
+                     sec.axis = sec_axis(~., labels = function(x) paste0(x, "%"))) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  scale_colour_manual(values=cols) +
+  labs(title = "Origin of Transmission ",
+       y = "", x = "", colour= "") +
+  theme_light() +
+  theme(legend.margin=margin(-10,0,0,0),
+        text = element_text(size = 16),
+        legend.position = "bottom") # legend.title=element_blank()
+```
+
+
+```{r, echo = F, eval = ggsaveTF}
+ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi_transmission.png"))
+```
+
+
+
