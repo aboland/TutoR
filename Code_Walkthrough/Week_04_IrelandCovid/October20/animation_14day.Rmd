@@ -31,11 +31,11 @@ Information on the data can be found at [this link](https://data.gov.ie/dataset/
 ```{r get spatial data}
 # The data must be downloaded and unzipped, there are multiple files in the zip which are needed
 directory_to_use <- "data/"
-# download.file("https://opendata.arcgis.com/datasets/d9be85b30d7748b5b7c09450b8aede63_0.zip?outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D",
-#               file.path(directory_to_use, "Covid19CountyStatisticsHPSCIreland.zip"))
-# utils::unzip(file.path(directory_to_use, "Covid19CountyStatisticsHPSCIreland.zip"), 
-#              exdir = directory_to_use)
-# covid_openddata_shpdata <-  rgdal::readOGR(dsn = file.path(directory_to_use, "Covid19CountyStatisticsHPSCIreland.shp"), stringsAsFactors = F)
+download.file("https://opendata.arcgis.com/datasets/d9be85b30d7748b5b7c09450b8aede63_0.zip?outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D",
+              file.path(directory_to_use, "Covid19CountyStatisticsHPSCIreland.zip"))
+utils::unzip(file.path(directory_to_use, "Covid19CountyStatisticsHPSCIreland.zip"),
+             exdir = directory_to_use)
+covid_openddata_shpdata <-  rgdal::readOGR(dsn = file.path(directory_to_use, "Covid19CountyStatisticsHPSCIreland.shp"), stringsAsFactors = F)
 
 # Create data frame containing the polygon coordinates
 # county_polygon_data <- broom::tidy(covid_openddata_shpdata, region = "CountyName")
@@ -46,12 +46,13 @@ county_polygon_data <- readr::read_csv("data/county_polygon.csv")
 
 ```{r covid numbers}
 # # Create data frame of the covid stats only, no spatial data
-# county_csv <- 
+# county_csv <-
 #   covid_openddata_shpdata@data  %>%
-#   rename(PopulationCensus16 = Population, ConfirmedCovidCases = ConfirmedC)
+#   rename(PopulationCensus16 = Population, ConfirmedCovidCases = ConfirmedC) %>%
+#   mutate(TimeStamp = as.Date(TimeStamp))
 
 # A more up to date dataset (without spatial data)
-county_csv <- 
+county_csv <-
   readr::read_csv("http://opendata-geohive.hub.arcgis.com/datasets/d9be85b30d7748b5b7c09450b8aede63_0.csv?outSR={%22latestWkid%22:3857,%22wkid%22:102100}") %>%
   mutate(TimeStamp = as.Date(TimeStamp))
 
@@ -65,7 +66,6 @@ hospital_csv <-
 
 icu_csv <- 
   readr::read_csv("https://opendata.arcgis.com/datasets/c8208a0a8ff04a45b2922ae69e9b2206_0.csv")
-
 ```
 
 
@@ -105,7 +105,8 @@ covid_rolling14 <-
 rolling14_anim <- 
   covid_rolling14 %>%
   # Filter the data by date
-  filter(TimeStamp >= "2020-08-01") %>% # Sys.Date() - 50
+  filter(TimeStamp >= "2020-09-01") %>% # Sys.Date() - 50
+  # filter(TimeStamp == max(covid_rolling14$TimeStamp)) %>%
   # Join data to county map data
   full_join(county_polygon_data, by = c("CountyName" = "id")) %>%
   ggplot() + geom_polygon(aes(x = long, y = lat, group = group, fill = mean_rolling14_per100), colour = "black") + 
@@ -187,15 +188,15 @@ testing_14_anim <-
        x = "", y = "")
 
 
-# test_anim <- 
-#   animate(testing_14_anim,
-#         nframes = 120, fps = 10,
-#           start_pause = 5, end_pause = 20)
+test_anim <-
+  animate(testing_14_anim,
+        nframes = 120, fps = 10,
+          start_pause = 5, end_pause = 20)
 # 
-# anim_save(filename = paste0(directory_to_use, "rolling_14day_tests_", Sys.Date(),".gif"),
-#           animation = map_anim)
+anim_save(filename = paste0(directory_to_use, "rolling_14day_tests_", Sys.Date(),".gif"),
+          animation = test_anim)
 # 
-# test_anim
+test_anim
 ```
 
 
