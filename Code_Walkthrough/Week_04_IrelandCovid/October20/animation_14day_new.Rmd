@@ -106,6 +106,7 @@ rolling14_anim <-
   covid_rolling14 %>%
   # Filter the data by date
   filter(TimeStamp >= "2020-08-01") %>% # Sys.Date() - 50
+  filter(TimeStamp == max(covid_rolling14$TimeStamp)) %>%
   ggplot() + 
   geom_sf(aes(fill = rolling14_per100, geometry = geometry), colour = NA) + 
   theme_void() +
@@ -163,6 +164,7 @@ testing_14_anim <-
   geom_line() +
   geom_point(colour = "darkgreen") +
   scale_y_continuous(position = c("right"), limits = c(0, NA)) +
+  scale_x_date(date_breaks = "2 weeks", date_labels = "%d %b") +
   facet_wrap(~stat, ncol = 1, scales = "free") +
   labs(x = "", y = "", title = "Stats") +
   theme_light() +
