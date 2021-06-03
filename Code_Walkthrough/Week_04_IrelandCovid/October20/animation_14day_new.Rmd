@@ -106,7 +106,7 @@ rolling14_anim <-
   covid_rolling14 %>%
   # Filter the data by date
   filter(TimeStamp >= "2020-08-01") %>% # Sys.Date() - 50
-  filter(TimeStamp == max(covid_rolling14$TimeStamp)) %>%
+  # filter(TimeStamp == max(covid_rolling14$TimeStamp)) %>%
   ggplot() + 
   geom_sf(aes(fill = rolling14_per100, geometry = geometry), colour = NA) + 
   theme_void() +
@@ -182,7 +182,7 @@ testing_14_anim <-
 ```{r combined gif}
 library(magick)
 
-gif_length_sec = 15
+gif_length_sec = 45
 gif_fps = 10
 start_pause_sec <- 1
 end_pause_sec <-  5

@@ -220,9 +220,10 @@ covid_tidy %>%
 
 ## Graphs
 ```{r, lockdown dates}
+# https://en.wikipedia.org/wiki/COVID-19_pandemic_in_the_Republic_of_Ireland
 key_dates <- 
-  data.frame(event = c("First Lockdown", "Easing Restrictions", "Phase 3 Easing", "Midlands Lockdown",  "Dublin L3",  "Level 3", "Level 5"),
-             datestamp = c("2020-03-15", "2020-05-18",          "2020-06-29",     "2020-08-07",        "2020-09-18", "2020-10-04", "2020-10-19")) %>%
+  data.frame(event = c("First Lockdown", "Easing Restrictions", "Easing Phase 3", "Midlands Lockdown",  "Dublin L3",  "Level 3", "Level 5", "Level 3", "Level 5-", "Level 5", "Level 5+"),
+             datestamp = c("2020-03-15", "2020-05-18",          "2020-06-29",     "2020-08-07",        "2020-09-18", "2020-10-04", "2020-10-19", "2020-12-01", "2020-12-22", "2020-12-30", "2021-01-06")) %>%
   mutate(datestamp = as.Date(datestamp))
 
 key_dates_2w <- 
@@ -265,7 +266,7 @@ cat("The plot can be saved locally using `ggsave`")
 
 ```{r plot save, eval = ggsaveTF, echo = full_text}
 ggsave(file = paste0("~/Desktop/", Sys.Date(), "_covid_roi.png"),
-       plot = covid_plot, width = 7, height = 5, units = "in")
+       plot = covid_plot, width = 9, height = 5, units = "in")
 ``` 
 
 
@@ -282,8 +283,13 @@ covid_plot_aug <-
   testing_plot_data %>%  
   # remove any data before "2020-08-01"
   filter(DateStamp >= start_date) %>%
-  ggplot(aes(x = DateStamp, y = value)) +
-  geom_line() +
+  ggplot() +
+  geom_line(aes(x = DateStamp, y = value)) +
+  geom_vline(data = key_dates %>% filter(datestamp>= start_date), 
+             aes(xintercept = datestamp), linetype = 2, colour = "brown") +
+  geom_text(data = key_dates%>% filter(datestamp>= start_date), 
+            mapping = aes(label = event, y = 0, x = datestamp), 
+            angle = 90, hjust = -0, vjust = -0.3, size = 2, colour = "brown") +
   scale_y_continuous(position = "right", limits = c(0, NA)) +
   scale_x_date(date_breaks = "3 week", date_labels = "%d %b") +
   facet_wrap(~stat, ncol = 2, scales = "free") +
@@ -401,7 +407,7 @@ by_age_14day %>%
   # Create a single plot for each age group
   facet_wrap(~Age_Group) +
   # Specify the breaks for dates
-  scale_x_date(date_breaks = "3 week", date_labels = "%d %b") +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
   labs(title = "14 Day Incidence by Age Group",
        x = "", y = "") +
   theme_light() +
@@ -466,7 +472,7 @@ case_and_hospital_14day <-
   profile_csv %>%
   select(DateStamp, starts_with(c("Aged","HospitalisedAged"))) %>%
   # use mutates to consolidate case groupings to match hospital groups
-  mutate(Aged4 = Aged1 + Aged1to4, HospitalisedAged4 = HospitalisedAged5, .keep = "unused")%>%
+  mutate(Aged4 = Aged1to4, HospitalisedAged4 = HospitalisedAged5, .keep = "unused")%>%
   mutate(across(starts_with(c("Aged","HospitalisedAged")), my_rolling_sum)) %>%
   tidyr::pivot_longer(cols = starts_with(c("Aged","HospitalisedAged")), 
                       names_to = "Age_Group", values_to = "Cases")
@@ -558,7 +564,7 @@ case_and_hospital_14day  %>%
   facet_wrap(~Age_Group) +
   # sec_axis scales the hospital admissions data and adds axis labels on the right hand side
   scale_y_continuous(sec.axis = sec_axis(~./scl, name = "14 Day Hopital Admissions")) +
-  scale_x_date(date_breaks = "2 weeks", date_labels = "%d %b") +
+  scale_x_date(date_breaks = "1 month", date_labels = "%d %b") +
   # Use the custom colours
   scale_colour_manual(values = cols) +
   labs(title = paste0("<span style='color:", cols[2],";'>14 Day Incidence</span>"," and ",
@@ -597,7 +603,7 @@ case_and_hospital_14day  %>%
   # scale_fill_viridis_c() +
   # scale_fill_distiller(palette = "RdYlGn", limits = c(0, NA)) +
   scale_fill_viridis_c() +
-  scale_x_date(date_breaks = "4 days", date_labels = "%d %b", expand = c(0,0)) +
+  scale_x_date(date_breaks = "7 days", date_labels = "%d %b", expand = c(0,0)) +
   coord_equal() +
   # theme_light() +
   # ggthemes::theme_tufte(base_family="Helvetica") +
@@ -605,7 +611,8 @@ case_and_hospital_14day  %>%
        title = "14 Day Incidence") +
   theme(axis.ticks.y=element_blank(),
         # axis.text.x = element_text(hjust = 0),
-        legend.position = "bottom")
+        legend.position = "bottom",
+        axis.text.x = element_text(size = 12, angle = -30, hjust = 0))
 
 
 case_and_hospital_14day  %>%
@@ -619,7 +626,7 @@ case_and_hospital_14day  %>%
   # scale_fill_distiller(palette = "RdYlGn", limits = c(0, NA)) +
   scale_fill_viridis_c(limits = c(0, NA)) +
   # viridis::scale_fill_viridis() +
-  scale_x_date(date_breaks = "4 days", date_labels = "%d %b", expand = c(0,0)) +
+  scale_x_date(date_breaks = "7 days", date_labels = "%d %b", expand = c(0,0)) +
   coord_equal() +
   # theme_light() +
   # ggthemes::theme_tufte(base_family="Helvetica") +
@@ -743,7 +750,7 @@ profile_csv %>%
   # select(DateStamp, CommunityTransmission, CloseContact, TravelAbroad, NoData) %>%
   tidyr::pivot_longer(cols = c(CommunityTransmission, CloseContact, TravelAbroad),#, NoData
                       names_to = "Origin", values_to = "Perc") %>%
-  tidyr::drop_na() %>%
+  # tidyr::drop_na() %>%
   # mutate(Origin = forcats::fct_relevel(Origin, unique(.$Origin))) %>%
   ggplot(aes(x = DateStamp, y = Perc, colour = Origin)) +
   geom_line(size = 0.8) + 
