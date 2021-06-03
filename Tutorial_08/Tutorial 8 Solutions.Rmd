@@ -1,0 +1,62 @@
+---
+title: "Tutorial 8: Solutions"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE}
+library(tidyverse)
+library(stringr)
+library(tidyr)
+library(nycflights13)
+```
+
+### Exercise 1
+
+```{r}
+str_length(mpg$model)
+```
+
+### Exercise 2
+
+```{r}
+str_c(mpg$manufacturer[1], mpg$model[1],sep = ":")
+```
+
+Or
+
+```{r}
+str_c(mpg[1, "manufacturer"], mpg[1,"model"], sep = ":")
+```
+
+### Exercise 3
+
+```{r}
+sum(str_detect(mpg$manufacturer, "au"))
+```
+
+### Exercise 4
+
+```{r}
+mpg$model <- str_replace_all(mpg$model, c("toyota tacoma 4wd"= "tacoma 4wd", "new beetle"= "beetle"))
+```
+
+### Exercise 5
+
+```{r}
+count(mpg, manufacturer)
+```
+
+### Exercise 6
+
+```{r}
+
+janFlights = filter(flights, month==1)
+noOfFlightsPerDay <- count(janFlights, day)
+ggplot(data = noOfFlightsPerDay) + 
+  geom_point(mapping = aes(x = day, y = n))
+```
+

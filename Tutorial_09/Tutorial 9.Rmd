@@ -1,0 +1,151 @@
+---
+title: "Tutorial 9: Factors"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This weeks tutorial will focus on factors. Factors are used for categorical variables. Categorical variables are variables which can take one of a limited and usually fixed number of possible outcomes. The colour of a car, blood group and breed of a dog are all examples of categorical variables. Sometimes variables are recoded into categories of categorical variables for data analysis purposes. For example, a dataset of houses might have a variable representing its price. The price variable can be altered so it instead labels the house as either 'cheap', 'average' or 'expensive' dependent on a specified range i.e all houses under 200,000 euro are labelled as cheap. The price variable is then considered to be a categorical variable. 
+
+## The `forcats` Package
+- The `forcats` package contains many useful functions for dealing with factors in R.
+
+- You can read about all the functions contained in the package and their uses [here](https://cran.r-project.org/web/packages/forcats/forcats.pdf).
+
+- Install and load the package in RStudio.
+
+- Ensure you also load the `tidyverse` package. 
+
+```{r, echo=FALSE, message=FALSE}
+library(forcats)
+library(tidyverse)
+```
+
+
+## Introduction to Factors
+- Some categorical variables such as the days of the week or months have a rank order. 
+
+- As you can see below, if these variables are not defined as factors then they are sorted by R alphabetically as opposed to their correct natural order. 
+
+```{r}
+days <- c("Monday", "Thursday", "Sunday", "Friday", "Saturday")
+sort(days)
+```
+- This issue can be rectified by formatting the values as factors:
+
+```{r}
+daysLevels <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+daysAsFactors <- factor(days, levels = daysLevels)
+sort(daysAsFactors)
+```
+- The `daysLevels` vector represents all the possible values for the `days` variable and the correct order for the variable.
+
+- Factors are also useful as they prevent the input of incorrect values for the variable and human error:
+
+```{r}
+days2 <- c("Tuesday", "Moday", "Saturday", "Sunday", "July")
+days2AsFactors <- factor(days2, levels= daysLevels)
+days2AsFactors
+```
+- As you can see the incorrect values are relabelled `NA`. You can find out more information about the incorrect values using the `parse_factor()` function. 
+
+```{r}
+days2AsFactors <- parse_factor(days2, levels = daysLevels)
+```
+
+- If given a dataset containing factors you can return the levels of the variable as follows:
+
+```{r}
+levels(days2AsFactors)
+```
+
+- This is useful as you may be dealing with datasets with thousands of observations. The `levels()` function allows you to quickly find out all the possible values of a given categorical variable. 
+
+## The `alcohol_consumption` Dataset
+- Download and read in alcohol_consumption.csv found in the **Tutorial 9** folder.
+
+- Alternatively you can read in the dataset directly using the dataset url as shown below.
+
+```{r}
+alcoholData <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-06-26/week13_alcohol_global.csv")
+```
+
+## `fct_reorder()`
+- `alcoholData` contains details of alcohol consumption in 195 different countries. 
+
+- We want to display the `total_litres_of_pure_alcohol` variable in a scatterplot. 
+
+- As the dataset is so large for our example we will only plot the first 10 countries.
+
+```{r alcoholScatter}
+subsetAlcohol <- alcoholData[1:10,]
+ggplot(subsetAlcohol, aes(total_litres_of_pure_alcohol, country)) + geom_point()
+
+```
+
+
+- This plot would be easier to interpret if the countries were sorted based on the `total_litres_of_pure_alcohol` variable. This can be done using the `fct_reorder()` function. 
+
+```{r alcoholScatterOrder}
+ggplot(subsetAlcohol, aes(total_litres_of_pure_alcohol, fct_reorder(country,total_litres_of_pure_alcohol ))) + geom_point()
+
+```
+
+**Exercise 1: Randomly select 10 countries from the `alcoholData` dataset. Produce a scatterplot of with the `country` variable on y-axis and `spirit_servings` on the x-axis, ensuring that the countries are sorted based on their `spirit_servings` value. Hint: Use the `sample()` function to randomly select the countries.**
+
+## Recoding Factors
+### `fct_recode()`
+- The `fct_recode()` function allows you to change the values of the levels and even to reduce the number of levels by renaming multiple levels to the same name.  
+
+- The `thanksgivingMeal` dataset contains details about what different families eat for their Thanksgiving meal.
+
+```{r}
+thanksgivingMeal <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-20/thanksgiving_meals.csv")
+levels(thanksgivingMeal$main_dish)
+```
+
+- By using the `levels()` function you can see all the different values for the `main_dish` variable. 
+
+- You may want to adust the values for the `main_dish` variable.
+
+```{r}
+thanksgivingMeal$main_dish <- fct_recode(thanksgivingMeal$main_dish, "Beef"="Roast beef", "Other (please specify)"= "Turducken")
+levels(thanksgivingMeal$main_dish)
+```
+
+**Exercise 2: Take a look at the different values for the `main_dish_other` variable. Use the `fct_recode()` function to tidy up some of the values so that the data will be cleaner and therefore subsequent analysis will be easier.**
+
+### `fct_collapse()`
+- Sometimes you may want to rename a number of values to just one single value in order to simplify data. 
+
+- While this can be done using the `fct_recode()` function it is often quicker to use `fct_collapse()`. 
+
+```{r}
+levels(thanksgivingMeal$kids_table_age)
+```
+
+```{r}
+thanksgivingMeal$kids_table_age <- fct_collapse(thanksgivingMeal$kids_table_age, "11 to 15" = c("11", "12", "13", "14", "15"), "16 to 20"= c("16", "17", "18", "19", "20") )
+levels(thanksgivingMeal$kids_table_age)
+```
+
+**Exercise 3: Use the `fct_collapse()` function to reduce the number of different values in the `main_prep_other` variable.**
+
+## The `summary()` Function
+- The `summary()` function is a quick and easy way to gain an overall snapshot of a large dataset.
+
+- You can input the whole dataset or just a single variable of interest into the function.
+
+```{r}
+summary(thanksgivingMeal)
+summary(thanksgivingMeal$family_income)
+```
+
+- The `thanksgivingMeal` dataset only contains categorical data. The `summary()` function provides a lot of useful statistical data for numerical data also.
+
+```{r}
+summary(mpg$hwy)
+```
+

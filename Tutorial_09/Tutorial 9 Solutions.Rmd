@@ -1,0 +1,45 @@
+---
+title: "Tutorial 9: Solutions"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo=FALSE, message=FALSE}
+library(forcats)
+library(tidyverse)
+alcoholData <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-06-26/week13_alcohol_global.csv")
+thanksgivingMeal <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-20/thanksgiving_meals.csv")
+```
+### Exercise 1
+
+```{r}
+countryIndex <- sample(1:nrow(alcoholData), 10)
+randomSubsetAlcohol <-alcoholData[countryIndex,]
+ggplot(randomSubsetAlcohol, aes(total_litres_of_pure_alcohol, fct_reorder(country,total_litres_of_pure_alcohol ))) + geom_point()
+```
+
+### Exercise 2
+
+```{r}
+levels(thanksgivingMeal$main_dish_other)
+```
+```{r}
+thanksgivingMeal$main_dish_other <- fct_recode(thanksgivingMeal$main_dish_other, "Varies"="Varies significantly by year as one group of people we tend to be with are vegetarian", "Varies"= "It varies, ham or turkey or boston butt", "Varies"= "always different", "Varies"="changes every year", "Varies"= "This year we are having baked lasagna, diff every year", "Steak"= "steak", "Prime Rib"= "prime rib","Turkey and Ham"= "A turkey and a ham. Always.")  
+levels(thanksgivingMeal$main_dish_other)
+```
+
+### Exercise 3
+
+```{r}
+levels(thanksgivingMeal$main_prep_other)
+```
+
+```{r}
+thanksgivingMeal$main_prep_other <- fct_collapse(thanksgivingMeal$main_prep_other, "Varies" = c("various ways", "Varies as per above","Try a new technique yearly.","always different"), "Barbecue"= c("Barbeque", "BBQ'd"), "Grilled"= c("grilled", "Grilled on the Weber","Cooked on a Weber Charcoal Grill","on the grill"), "Smoked"= c("smoked", "store smoked", "Having a Smoked Turkey this year", "Cooked in bourbon and then smokes"), "Eat Out"= c("We eat out", "Restaurant with various choices.") )
+levels(thanksgivingMeal$main_prep_other)
+```
+

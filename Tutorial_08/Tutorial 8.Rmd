@@ -1,0 +1,150 @@
+---
+title: "Tutorial 8: Strings"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stringr)
+```
+
+This weeks tutorial will take a more indepth look at strings. We have briefly mentioned strings before but we will now go into more detail and also introduce some string manipulation techniques. String manipulation can be used to edit and select strings within datasets. Additionally we will also take a look at the previously mentioned `count()` function and some practical uses of said function.
+
+## The `stringr` Package
+- A popular string manipulation package is the `stringr` package.
+
+- A complete list of all the functions in `stringr` and how to apply them can be found [here](https://cran.r-project.org/web/packages/stringr/stringr.pdf). 
+
+- Install and load this package.
+
+- Also load the `tidyverse` package. 
+
+## Simple String Functions
+
+### `str_length()`
+- This function returns the length of a specified string.
+
+```{r}
+str_length("Monday")
+```
+
+- It is possible to pass multiple strings into the function at the same time.
+
+```{r}
+str_length(c("Hi", "It is raining", "RStudio"))
+```
+
+**Exercise 1: Find the length of the `model` name for each observation in the `mpg` dataset. Remember the `mpg` dataset is part of the `tidyverse` package so does not need to be read into RStudio.**
+
+### `str_c()`
+- This function can be used to join together multiple strings.
+
+```{r}
+str_c("H", "e", "y")
+```
+
+- It also possible to specify a separator to split the combined strings using the `sep` parameter.
+
+```{r}
+str_c("a", "b", "c", sep = ",")
+```
+
+**Exercise 2: Combine the `manufacturer` and `model` values for the first observation of the `mpg` dataset, separating the two strings with a `:`.**
+
+### `str_sub()`
+- This function creates a substring of a defined length and starting point. 
+
+- The function takes the following format: `str_sub(string, start, end)` where `string` is the string or vector of strings to be subsetted, `start` is the index of the first character and `end` is the index of the final character. 
+
+
+```{r}
+days <- c("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+str_sub(days,1,3)
+```
+
+- The imputting of a negative index results in the counting back from the last character.
+
+```{r}
+str_sub(days,-3,-1)
+```
+
+### `str_detect()`
+- This function can be used to find whether each entry in a vector of strings contains a given character or set of characters.
+
+```{r}
+str_detect(days, "r")
+str_detect(days, "es")
+```
+
+- You will notice that a vector of logical operators is returned. If logical vectors are considered in a numeric sense then `TRUE` has a value of 1 and `FALSE` has a value of 0. Therefore it is easy to find the number of strings which contain the specified character using the `sum()` function.
+
+```{r}
+sum(str_detect(days, "r"))
+sum(str_detect(days, "es"))
+```
+
+**Exercise 3: Find the number of `manufacturers` which contain an `au` in the `mpg` data.**
+
+- The `^` symbol can be used to specify that the character to be detected must be at the start.
+
+```{r}
+sum(str_detect(days, "^s"))
+```
+
+- Similarly the `$` symbol can be used to check for characters at the end of a list of strings. 
+
+```{r}
+sum(str_detect(days, "ay$"))
+```
+
+- The use of square brackets returns whether or not a vector of strings contains any of the characters specified between the brackets.
+
+```{r}
+sum(str_detect(days, "[wei]"))
+```
+
+### `str_extract()` and `str_subset()`
+- These two functions can be used together to analyse the content of strings within R. This could come in handy when trying to assess the sentiment of a large number of reviews.
+
+- The `sentences` dataset referred to below is a dataset contained in the `stringr` package. 
+
+- Run the following code in R and see if you can understand what each line of code is doing:
+
+```{r}
+wordList <- c("new", "nice", "happy", "sad")
+wordsJoined <- str_c(wordList, collapse = "|")
+hasWord <- str_subset(sentences, wordsJoined)
+wordsExtracted <- str_extract(hasWord, wordsJoined)
+wordsExtracted
+```
+
+
+- Note: the `str_extract()` function will only extract the first instance it finds in each string. For example if a string contained both `nice` and `sad` with `sad` appearing first then only `sad` would be extracted from that string. However, the use of the `str_extract_all()` function fixes this problem and returns all instances found in a given string.
+
+### `str_replace()`
+- This function takes the following format: `str_replace(string, pattern, replacement)` where `string` is the vector of values you want to make alterations to, `pattern` is the specific value you want to change and `replacement` is what you want to change that value to. 
+
+```{r}
+stringToChange <- c("Thomas and i went to the shop", "i hate mondays", "Where am i?")
+str_replace(stringToChange, "i", "I")
+```
+
+- It is possible to do multiple replacements at once using the `str_replace_all()` function. 
+
+```{r}
+str_replace_all(stringToChange, c("Thomas"= "Sam", "i"="I", "mondays"= "Mondays"))
+```
+
+**Exercise 4: In the `mpg` dataset change the `model` names from `toyota tacoma 4wd` to `tacoma 4wd` and `new beetle` to `beetle`.**
+
+## `count()`
+- The `count()` function is a very useful function for data analysis.
+
+- It takes the following format: `count(df, vars)` where `df` is the dataframe and `vars` are the variables whose unique values are to be counted. 
+
+**Exercise 5: Count the number of observations for each `manufacturer` in the `mpg` dataset.** 
+
+
+**Exercise 6: Count the number of flights occuring everyday in january the `flights` dataset from the `nycflights13` package. Display the results using a scatterplot.**   
+
